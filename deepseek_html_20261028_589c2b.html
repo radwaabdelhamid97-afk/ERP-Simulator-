@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP Accounting Lab — SAP S/4HANA &amp; Oracle Fusion</title>
+<style>
+:root{
+  --bg:#f4f7fb; --surface:#ffffff; --surface2:#eef3f9; --ink:#162433;
+  --muted:#5b6b7c; --line:#d6e0ea; --brand:#0b4f8a; --brand2:#0e6db8;
+  --accent:#f0a500; --ok:#177245; --okbg:#e6f5ec; --bad:#a4262c; --badbg:#fdecec;
+  --warn:#8a5a00; --warnbg:#fff4d6; --shadow:0 8px 28px rgba(15,40,70,.10);
+  --radius:16px; --sap:#0a6ed1; --oracle:#c74634;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",Arial,sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.55;
+}
+[dir="rtl"] body{font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",Arial,sans-serif}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none !important}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+a{color:var(--brand2)}
+h1,h2,h3,h4{line-height:1.25;margin:0 0 .5rem}
+p{margin:.35rem 0 .8rem}
+.mono{font-family:Consolas,"Courier New",monospace}
+.badge{display:inline-block;padding:.18rem .55rem;border-radius:999px;font-size:.75rem;font-weight:700;background:var(--surface2);color:var(--muted)}
+.badge.ok{background:var(--okbg);color:var(--ok)}
+.badge.bad{background:var(--badbg);color:var(--bad)}
+.badge.warn{background:var(--warnbg);color:var(--warn)}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:.55rem .9rem;border-radius:10px;font-weight:600;transition:.15s}
+.btn:hover{border-color:var(--brand2);transform:translateY(-1px)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand2)}
+.btn.ghost{background:transparent}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.small{padding:.32rem .6rem;font-size:.85rem}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow)}
+.grid{display:grid;gap:1rem}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.wrap{max-width:1280px;margin:0 auto;padding:1.2rem}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.tiny{font-size:.78rem}
+hr{border:none;border-top:1px solid var(--line);margin:1rem 0}
+label{display:block;font-size:.82rem;font-weight:700;margin:.45rem 0 .25rem;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:.55rem .65rem;border:1px solid var(--line);border-radius:9px;background:#fff}
+input:focus,select:focus,textarea:focus{outline:2px solid #9ec8f0;border-color:var(--brand2)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:.45rem .5rem;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);background:var(--surface2)}
+tr.total td{font-weight:800;background:var(--surface2)}
+.num{text-align:end;font-variant-numeric:tabular-nums}
+[dir="rtl"] .num{text-align:left}
+.pill{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:999px;background:var(--surface2);font-size:.78rem;font-weight:700}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}
+.tab{padding:.45rem .8rem;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:.85rem}
+.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.progress{height:10px;background:var(--surface2);border-radius:999px;overflow:hidden}
+.progress>span{display:block;height:100%;background:linear-gradient(90deg,var(--brand2),var(--brand));width:0}
+.alert{padding:.7rem .85rem;border-radius:10px;margin:.6rem 0;font-size:.9rem}
+.alert.ok{background:var(--okbg);color:var(--ok);border:1px solid #b9e3cb}
+.alert.bad{background:var(--badbg);color:var(--bad);border:1px solid #f3c3c4}
+.alert.warn{background:var(--warnbg);color:var(--warn);border:1px solid #f1dda0}
+.flex{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.flex.between{justify-content:space-between}
+.kpi{display:flex;flex-direction:column;gap:.15rem}
+.kpi b{font-size:1.5rem}
+.sidebar{position:fixed;inset-block:0;inset-inline-start:0;width:262px;background:#0e2033;color:#dfe9f4;padding:1rem .8rem;overflow-y:auto;z-index:40}
+.main{margin-inline-start:262px;min-height:100vh}
+@media(max-width:980px){
+  .sidebar{position:static;width:auto;margin:0;border-radius:0}
+  .main{margin-inline-start:0}
+}
+.sidebar h3{color:#fff;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin:1rem 0 .4rem;opacity:.7}
+.navbtn{display:flex;align-items:center;gap:.55rem;width:100%;padding:.5rem .55rem;border-radius:9px;background:transparent;border:0;color:#dfe9f4;text-align:start;font-size:.9rem;font-weight:600}
+.navbtn:hover{background:rgba(255,255,255,.08)}
+.navbtn.active{background:var(--brand2);color:#fff}
+.navbtn .ico{width:1.1rem;text-align:center;flex:none}
+.erp-switch{display:flex;gap:.35rem;margin:.6rem 0}
+.erp-switch button{flex:1;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#dfe9f4;padding:.4rem;font-size:.78rem;font-weight:700}
+.erp-switch button.active{background:var(--accent);color:#162433;border-color:var(--accent)}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.7rem 1rem;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;flex-wrap:wrap}
+.lang-switch{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.lang-switch button{border:0;background:var(--surface);padding:.35rem .7rem;font-weight:800;font-size:.8rem}
+.lang-switch button.active{background:var(--brand);color:#fff}
+.lesson-block{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1rem;margin:.8rem 0}
+.lesson-block h4{margin-bottom:.3rem}
+.quiz-option{display:block;width:100%;text-align:start;border:1px solid var(--line);background:var(--surface);padding:.6rem .7rem;border-radius:9px;margin:.35rem 0;font-weight:600}
+.quiz-option:hover{border-color:var(--brand2)}
+.quiz-option.correct{border-color:var(--ok);background:var(--okbg)}
+.quiz-option.wrong{border-color:var(--bad);background:var(--badbg)}
+.quiz-option:disabled{cursor:default}
+.formula{background:#0e2033;color:#eaf2fb;padding:.8rem 1rem;border-radius:12px;font-family:Consolas,monospace;font-size:.9rem;overflow-x:auto}
+.journal-lines{display:grid;grid-template-columns:2.4fr 1fr 1fr 2fr auto;gap:.35rem;align-items:end;margin:.35rem 0}
+@media(max-width:760px){.journal-lines{grid-template-columns:1fr 1fr}}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:800px){.compare{grid-template-columns:1fr}}
+.visual{border:1px dashed var(--line);border-radius:14px;padding:.8rem;background:var(--surface2);overflow-x:auto}
+.visual svg{max-width:100%;height:auto}
+.welcome{min-height:100vh;display:grid;place-items:center;padding:1.2rem;background:radial-gradient(circle at 20% 10%,#e8f1fb 0,transparent 45%),radial-gradient(circle at 90% 20%,#fff3d6 0,transparent 40%),var(--bg)}
+.welcome-inner{max-width:1080px;width:100%}
+.erp-card{position:relative;border-radius:22px;padding:1.4rem;background:var(--surface);border:2px solid transparent;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:.7rem;transition:.18s;overflow:hidden}
+.erp-card:hover{transform:translateY(-4px)}
+.erp-card.sap{border-top:6px solid var(--sap)}
+.erp-card.oracle{border-top:6px solid var(--oracle)}
+.logo{display:inline-flex;align-items:center;justify-content:center;font-weight:900;letter-spacing:-.02em;border-radius:12px;padding:.5rem .9rem;font-size:1.35rem}
+.logo.sap{background:#e8f2fd;color:var(--sap)}
+.logo.oracle{background:#fdecea;color:var(--oracle)}
+.sim-shell{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface)}
+.sim-top{padding:.7rem .9rem;background:#12263d;color:#eaf2fb;display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap;align-items:center}
+.sim-top.sap{background:linear-gradient(90deg,#0a2e52,#0a6ed1)}
+.sim-top.oracle{background:linear-gradient(90deg,#4d1a14,#c74634)}
+.sim-body{padding:1rem}
+.checklist{list-style:none;padding:0;margin:0}
+.checklist li{display:flex;gap:.55rem;align-items:flex-start;padding:.45rem 0;border-bottom:1px solid var(--line)}
+.check-circle{width:1.25rem;height:1.25rem;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:.7rem;font-weight:900}
+.check-circle.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.footer{padding:1rem;text-align:center;font-size:.78rem;color:var(--muted)}
+.toast{position:fixed;inset-block-end:1rem;inset-inline-end:1rem;background:#12263d;color:#fff;padding:.7rem .9rem;border-radius:10px;box-shadow:var(--shadow);z-index:100;font-size:.9rem;max-width:340px}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast hidden"></div>
+
+<!-- ================= WELCOME ================= -->
+<div id="welcome" class="welcome">
+  <div class="welcome-inner">
+    <div class="flex between" style="margin-bottom:1.2rem">
+      <div>
+        <div class="badge">Educational simulator · غير مرتبط رسميًا بـ SAP أو Oracle</div>
+        <h1 style="font-size:clamp(1.7rem,4vw,2.7rem);margin-top:.6rem" id="welcomeTitle">Choose Your ERP Learning Path</h1>
+        <p class="muted" id="welcomeSub">Learn accounting. Practice real workflows. Build professional ERP skills.</p>
+      </div>
+      <div class="lang-switch">
+        <button onclick="setLang('en')" id="welEn" class="active">English</button>
+        <button onclick="setLang('ar')" id="welAr">العربية</button>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="erp-card sap">
+        <div class="flex between">
+          <div class="logo sap">SAP</div>
+          <span class="badge">S/4HANA Finance</span>
+        </div>
+        <h2>SAP S/4HANA Finance</h2>
+        <p class="small" id="sapCardDesc">Enterprise financial accounting suite built on the SAP HANA in-memory platform and delivered through SAP Fiori. It combines General Ledger, Accounts Payable, Accounts Receivable, Asset Accounting, Bank &amp; Cash, and financial closing in a single universal journal.</p>
+        <div class="small"><b>Key modules:</b> GL · AP · AR · Asset Accounting · Bank &amp; Cash · Financial Reporting · Month-End Close</div>
+        <div>
+          <div class="flex between tiny"><span>Progress</span><span id="sapWelProgTxt">0%</span></div>
+          <div class="progress"><span id="sapWelProg"></span></div>
+        </div>
+        <button class="btn primary" onclick="selectERP('sap')" id="startSapBtn">Start Learning SAP</button>
+      </div>
+
+      <div class="erp-card oracle">
+        <div class="flex between">
+          <div class="logo oracle">ORACLE</div>
+          <span class="badge">Fusion Cloud Financials</span>
+        </div>
+        <h2>Oracle Fusion Cloud Financials</h2>
+        <p class="small" id="oracleCardDesc">Cloud financial management suite with General Ledger, Payables, Receivables, Cash Management, Fixed Assets, and Subledger Accounting. It uses ledgers, business units, accounting calendars, and role-based work areas.</p>
+        <div class="small"><b>Key modules:</b> GL · Payables · Receivables · Cash Management · Fixed Assets · Financial Reporting · Period Close</div>
+        <div>
+          <div class="flex between tiny"><span>Progress</span><span id="oracleWelProgTxt">0%</span></div>
+          <div class="progress"><span id="oracleWelProg"></span></div>
+        </div>
+        <button class="btn primary" onclick="selectERP('oracle')" id="startOracleBtn">Start Learning Oracle</button>
+      </div>
+    </div>
+
+    <p class="tiny muted" style="margin-top:1.2rem">
+      This is an independent educational environment. Screen layouts, menu names, and field labels are simplified simulations inspired by publicly documented workflows. They are not official SAP or Oracle screens and do not reproduce any specific release exactly. Always verify production steps against your organisation’s configuration and the vendor’s current documentation.
+    </p>
+  </div>
+</div>
+
+<!-- ================= MAIN APP ================= -->
+<div id="app" class="hidden">
+  <aside class="sidebar">
+    <div class="flex between">
+      <div>
+        <div style="font-weight:900;font-size:1.05rem;color:#fff" id="sideBrand">ERP Accounting Lab</div>
+        <div class="tiny" style="opacity:.7">Nile Trading Company · Educational</div>
+      </div>
+    </div>
+
+    <div class="erp-switch" id="erpSwitcher">
+      <button onclick="switchERP('sap')" id="swSap">SAP</button>
+      <button onclick="switchERP('oracle')" id="swOracle">Oracle</button>
+    </div>
+
+    <h3 id="navLearnH">Learn</h3>
+    <button class="navbtn" onclick="navigate('dashboard')" id="navDash"><span class="ico">▦</span><span id="navDashTxt">Dashboard</span></button>
+    <button class="navbtn" onclick="navigate('fundamentals')" id="navFund"><span class="ico">◈</span><span id="navFundTxt">Shared Fundamentals</span></button>
+    <button class="navbtn" onclick="navigate('erp')" id="navErp"><span class="ico">▤</span><span id="navErpTxt">SAP Learning Path</span></button>
+
+    <h3 id="navPracticeH">Practice</h3>
+    <button class="navbtn" onclick="navigate('simulator')" id="navSim"><span class="ico">▣</span><span id="navSimTxt">ERP Simulator</span></button>
+    <button class="navbtn" onclick="navigate('workplace')" id="navWork"><span class="ico">☰</span><span id="navWorkTxt">Real Workplace Tasks</span></button>
+    <button class="navbtn" onclick="navigate('exam')" id="navExam"><span class="ico">✎</span><span id="navExamTxt">Final Practical Exam</span></button>
+
+    <h3 id="navRefH">Reference</h3>
+    <button class="navbtn" onclick="navigate('compare')" id="navCompare"><span class="ico">⇄</span><span id="navCompareTxt">SAP vs Oracle Comparison</span></button>
+    <button class="navbtn" onclick="navigate('glossary')" id="navGloss"><span class="ico">⌕</span><span id="navGlossTxt">Glossary &amp; Search</span></button>
+    <button class="navbtn" onclick="navigate('videos')" id="navVideos"><span class="ico">▶</span><span id="navVideosTxt">Video Lessons &amp; Tutorials</span></button>
+
+    <h3>Session</h3>
+    <button class="navbtn" onclick="resetAll()"><span class="ico">↺</span><span id="navResetTxt">Reset All Progress</span></button>
+    <button class="navbtn" onclick="backToWelcome()"><span class="ico">⌂</span><span id="navHomeTxt">ERP Selection Screen</span></button>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="flex">
+        <span class="pill" id="topErpPill">SAP S/4HANA</span>
+        <span class="pill" id="topPeriodPill">Period 2025-01</span>
+      </div>
+      <div class="flex">
+        <button class="btn small ghost" onclick="navigate('dashboard')" id="topDashBtn">Dashboard</button>
+        <div class="lang-switch">
+          <button onclick="setLang('en')" id="langEn" class="active">EN</button>
+          <button onclick="setLang('ar')" id="langAr">AR</button>
+        </div>
+      </div>
+    </div>
+    <div id="view" class="wrap"></div>
+    <div class="footer">
+      <div id="footerTxt">Educational simulator — not affiliated with SAP SE or Oracle Corporation. Verify all production steps against current vendor documentation.</div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* =========================================================
+   ERP ACCOUNTING LAB — single-file educational application
+   ========================================================= */
+
+const STORAGE_KEY = 'nile_erp_accounting_lab_v1';
+
+/* ---------- i18n ---------- */
+const UI = {
+  en: {
+    dashboard:'Dashboard', fundamentals:'Shared Fundamentals', erp:'Learning Path',
+    simulator:'ERP Simulator', workplace:'Real Workplace Tasks', exam:'Final Practical Exam',
+    compare:'SAP vs Oracle Comparison', glossary:'Glossary & Search', videos:'Video Lessons & Tutorials',
+    reset:'Reset All Progress', home:'ERP Selection Screen', period:'Period',
+    startSap:'Start Learning SAP', startOracle:'Start Learning Oracle',
+    welcomeTitle:'Choose Your ERP Learning Path',
+    welcomeSub:'Learn accounting. Practice real workflows. Build professional ERP skills.',
+    sap:'SAP S/4HANA Finance', oracle:'Oracle Fusion Cloud Financials',
+    overall:'Overall progress', completedLessons:'Completed lessons', quizzes:'Quiz score',
+    practical:'Practical tasks', weak:'Weak areas', recommend:'Recommended next lesson',
+    continue:'Continue learning', mistakes:'Review my mistakes', noMistakes:'No quiz mistakes recorded yet.',
+    markDone:'Mark lesson complete', completed:'Completed', quiz:'Knowledge check',
+    submit:'Submit answer', next:'Next', hint:'Hint', correct:'Correct', wrong:'Incorrect',
+    explanation:'Explanation', post:'Post', validate:'Validate', resetSim:'Reset simulator',
+    seed:'Load demo January transactions', trial:'Trial Balance', balanceSheet:'Balance Sheet',
+    income:'Income Statement', closePeriod:'Close period', closed:'Closed',
+    account:'Account', debit:'Debit', credit:'Credit', balance:'Balance', total:'Total',
+    date:'Date', description:'Description', reference:'Reference', amount:'Amount',
+    supplier:'Supplier', customer:'Customer', invoiceNo:'Invoice No.', vat:'VAT 14%',
+    bank:'Bank', cash:'Cash', inventory:'Inventory', asset:'Fixed asset',
+    save:'Save', cancel:'Cancel', addLine:'Add line', remove:'Remove',
+    journalEntry:'Journal Entry', supplierInvoice:'Supplier Invoice', supplierPayment:'Supplier Payment',
+    customerInvoice:'Customer Invoice', customerReceipt:'Customer Receipt', bankRec:'Bank Reconciliation',
+    depreciation:'Depreciation', reports:'Reports', monthEnd:'Month-End Close',
+    runDep:'Run depreciation', adjust:'Post adjustment', reconciled:'Reconciled',
+    notReconciled:'Not reconciled', bookBalance:'Book balance', statementBalance:'Statement balance',
+    difference:'Difference', navigationPath:'Navigation path', accountingTreatment:'Accounting treatment',
+    requiredDocs:'Required supporting documents', commonErrors:'Common errors and fixes',
+    fieldGuide:'Field guide', exercise:'Exercise', solution:'Show solution', hints:'Progressive hints',
+    managerInstructions:'Finance Manager instructions', professionalPhrase:'Professional phrase for your manager',
+    language:'Language', search:'Search', all:'All', task:'Business task', sapFlow:'SAP workflow',
+    oracleFlow:'Oracle workflow', terminology:'Terminology differences', requiredFields:'Required fields',
+    verification:'Verification', similarities:'Similarities & differences', objective:'Business objective',
+    journalLines:'Journal lines', lines:'lines', open:'Open', locked:'Locked',
+    noData:'No transactions yet. Post a journal entry or load the demo data.',
+    allBalanced:'Debits equal credits. The entry is balanced.',
+    notBalanced:'Debits and credits do not balance. Correct the amounts before posting.',
+    posted:'Journal posted successfully.', periodClosed:'The accounting period is closed. Reopen or move to the next period before posting.',
+    invalidAccount:'Select a valid account for every line.', zeroLines:'Enter at least one debit and one credit.',
+    duplicateInvoice:'This supplier invoice number already exists. Check for a duplicate before posting.',
+    overpay:'Payment exceeds the open supplier balance.', overReceipt:'Receipt exceeds the open customer balance.',
+    bankAdjusted:'Bank charge adjustment posted. The book balance now agrees with the statement.',
+    depPosted:'Depreciation posted for the period.', alreadyDep:'Depreciation has already been posted for this period.',
+    closeChecklist:'Close checklist', closeDone:'All close steps completed. The period can be closed.',
+    closeBlocked:'Complete every checklist step before closing.', periodCloseEntry:'Period close journal',
+    resetConfirm:'Reset ALL progress and both simulators? This cannot be undone.',
+    demoLoaded:'Demo January transactions loaded into the current ERP simulator.',
+    simReset:'Simulator reset to opening balances.', progressSaved:'Progress saved locally in this browser.',
+    externalNote:'External links open official vendor documentation. The core lessons and simulator work offline.',
+    viewDoc:'Open official documentation', videoPlaceholder:'Video placeholder — use the written tutorial below.',
+    stepByStep:'Step-by-step visual tutorial', practiceTask:'Practice task', summary:'Bilingual summary',
+    examIntro:'Complete the practical sequence below. Each task must be verified before the next unlocks.',
+    examPass:'Exam passed. You completed the practical sequence and the reports reconcile.',
+    examFail:'Some tasks are still incomplete. Review the checklist and try again.',
+    allDone:'All steps complete', taskDone:'Task complete', notYet:'Not yet complete',
+    openPeriod:'Accounting period is open', goToSim:'Open simulator',
+    welcomeBack:'Welcome back', quickStart:'Quick start',
+    reset:'Reset', confirm:'Confirm'
+  },
+  ar: {
+    dashboard:'لوحة التحكم', fundamentals:'أساسيات ERP المشتركة', erp:'مسار التعلم',
+    simulator:'محاكي ERP', workplace:'مهام عمل حقيقية', exam:'الاختبار العملي النهائي',
+    compare:'مقارنة SAP و Oracle', glossary:'المصطلحات والبحث', videos:'دروس الفيديو والدروس العملية',
+    reset:'إعادة ضبط كل التقدم', home:'شاشة اختيار ERP', period:'الفترة',
+    startSap:'ابدأ تعلم SAP', startOracle:'ابدأ تعلم Oracle',
+    welcomeTitle:'اختر مسار تعلم ERP',
+    welcomeSub:'تعلم المحاسبة. تدرب على سير العمل الحقيقي. ابنِ مهارات ERP احترافية.',
+    sap:'SAP S/4HANA Finance', oracle:'Oracle Fusion Cloud Financials',
+    overall:'التقدم الكلي', completedLessons:'الدروس المكتملة', quizzes:'درجة الاختبارات',
+    practical:'المهام العملية', weak:'نقاط الضعف', recommend:'الدرس التالي المقترح',
+    continue:'متابعة التعلم', mistakes:'مراجعة أخطائي', noMistakes:'لا توجد أخطاء اختبارات مسجلة بعد.',
+    markDone:'تحديد الدرس كمكتمل', completed:'مكتمل', quiz:'اختبار معرفي',
+    submit:'إرسال الإجابة', next:'التالي', hint:'تلميح', correct:'صحيح', wrong:'غير صحيح',
+    explanation:'التفسير', post:'ترحيل', validate:'تحقق', resetSim:'إعادة ضبط المحاكي',
+    seed:'تحميل معاملات يناير التجريبية', trial:'ميزان المراجعة', balanceSheet:'الميزانية العمومية',
+    income:'قائمة الدخل', closePeriod:'إغلاق الفترة', closed:'مغلقة',
+    account:'الحساب', debit:'مدين', credit:'دائن', balance:'الرصيد', total:'الإجمالي',
+    date:'التاريخ', description:'الوصف', reference:'المرجع', amount:'المبلغ',
+    supplier:'المورد', customer:'العميل', invoiceNo:'رقم الفاتورة', vat:'ضريبة القيمة المضافة ١٤٪',
+    bank:'البنك', cash:'النقدية', inventory:'المخزون', asset:'أصل ثابت',
+    save:'حفظ', cancel:'إلغاء', addLine:'إضافة سطر', remove:'حذف',
+    journalEntry:'قيد اليومية', supplierInvoice:'فاتورة مورد', supplierPayment:'دفعة مورد',
+    customerInvoice:'فاتورة عميل', customerReceipt:'تحصيل من عميل', bankRec:'تسوية البنك',
+    depreciation:'الإهلاك', reports:'التقارير', monthEnd:'إغلاق الشهر',
+    runDep:'تشغيل الإهلاك', adjust:'ترحيل التسوية', reconciled:'تمت التسوية',
+    notReconciled:'لم تتم التسوية', bookBalance:'رصيد الدفاتر', statementBalance:'رصيد كشف البنك',
+    difference:'الفرق', navigationPath:'مسار التنقل', accountingTreatment:'المعالجة المحاسبية',
+    requiredDocs:'المستندات المؤيدة المطلوبة', commonErrors:'الأخطاء الشائعة وإصلاحها',
+    fieldGuide:'دليل الحقول', exercise:'تمرين', solution:'إظهار الحل', hints:'تلميحات تدريجية',
+    managerInstructions:'تعليمات المدير المالي', professionalPhrase:'عبارة احترافية لمديرك',
+    language:'اللغة', search:'بحث', all:'الكل', task:'المهمة التجارية', sapFlow:'سير عمل SAP',
+    oracleFlow:'سير عمل Oracle', terminology:'اختلافات المصطلحات', requiredFields:'الحقول المطلوبة',
+    verification:'التحقق', similarities:'أوجه الشبه والاختلاف', objective:'الهدف التجاري',
+    journalLines:'سطور القيد', lines:'سطور', open:'مفتوحة', locked:'مقفلة',
+    noData:'لا توجد معاملات بعد. رحّل قيد يومية أو حمّل البيانات التجريبية.',
+    allBalanced:'إجمالي المدين يساوي إجمالي الدائن. القيد متوازن.',
+    notBalanced:'المدين والدائن غير متوازنين. صحح المبالغ قبل الترحيل.',
+    posted:'تم ترحيل القيد بنجاح.', periodClosed:'فترة المحاسبة مغلقة. أعد فتحها أو انتقل للفترة التالية قبل الترحيل.',
+    invalidAccount:'اختر حسابًا صحيحًا لكل سطر.', zeroLines:'أدخل سطر مدين وسطر دائن على الأقل.',
+    duplicateInvoice:'رقم فاتورة المورد موجود بالفعل. تحقق من وجود تكرار قبل الترحيل.',
+    overpay:'الدفعة تتجاوز الرصيد المفتوح للمورد.', overReceipt:'التحصيل يتجاوز الرصيد المفتوح للعميل.',
+    bankAdjusted:'تم ترحيل تسوية رسوم البنك. رصيد الدفاتر يطابق كشف البنك الآن.',
+    depPosted:'تم ترحيل الإهلاك للفترة.', alreadyDep:'تم ترحيل الإهلاك بالفعل لهذه الفترة.',
+    closeChecklist:'قائمة الإغلاق', closeDone:'اكتملت جميع خطوات الإغلاق. يمكن إغلاق الفترة.',
+    closeBlocked:'أكمل كل خطوة في القائمة قبل الإغلاق.', periodCloseEntry:'قيد إغلاق الفترة',
+    resetConfirm:'إعادة ضبط كل التقدم والمحاكيين؟ لا يمكن التراجع.',
+    demoLoaded:'تم تحميل معاملات يناير التجريبية في محاكي ERP الحالي.',
+    simReset:'تمت إعادة ضبط المحاكي إلى الأرصدة الافتتاحية.', progressSaved:'تم حفظ التقدم محليًا في هذا المتصفح.',
+    externalNote:'الروابط الخارجية تفتح وثائق المورد الرسمية. الدروس الأساسية والمحاكي يعملان دون اتصال.',
+    viewDoc:'فتح الوثائق الرسمية', videoPlaceholder:'مكان الفيديو — استخدم الشرح المكتوب أدناه.',
+    stepByStep:'شرح مرئي خطوة بخطوة', practiceTask:'مهمة تدريبية', summary:'ملخص ثنائي اللغة',
+    examIntro:'أكمل التسلسل العملي أدناه. يجب التحقق من كل مهمة قبل فتح التالية.',
+    examPass:'نجحت في الاختبار. أكملت التسلسل العملي والتقارير متطابقة.',
+    examFail:'بعض المهام غير مكتملة. راجع القائمة وحاول مرة أخرى.',
+    allDone:'كل الخطوات مكتملة', taskDone:'المهمة مكتملة', notYet:'غير مكتملة بعد',
+    openPeriod:'فترة المحاسبة مفتوحة', goToSim:'فتح المحاكي',
+    welcomeBack:'مرحبًا بعودتك', quickStart:'بداية سريعة',
+    reset:'إعادة ضبط', confirm:'تأكيد'
+  }
+};
+function t(k){ return (UI[state.lang] && UI[state.lang][k]) || UI.en[k] || k; }
+
+/* ---------- STATE ---------- */
+let state = {
+  lang:'en',
+  erp:null,
+  view:'welcome',
+  sim:{sap:null, oracle:null},
+  progress:{
+    shared:{lessons:{}, quizzes:{}},
+    sap:{lessons:{}, quizzes:{}, sim:{}},
+    oracle:{lessons:{}, quizzes:{}, sim:{}}
+  }
+};
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const saved = JSON.parse(raw);
+      state.lang = saved.lang || 'en';
+      state.progress = Object.assign(state.progress, saved.progress || {});
+      state.sim = Object.assign(state.sim, saved.sim || {});
+    }
+  }catch(e){ console.warn('Could not load saved state', e); }
+}
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      lang:state.lang, progress:state.progress, sim:state.sim
+    }));
+  }catch(e){ console.warn('Could not save state', e); }
+}
+
+/* ---------- CHART OF ACCOUNTS ---------- */
+const ACCOUNTS = [
+  {id:'1000', en:'Cash on Hand', ar:'النقدية بالصندوق', type:'asset', normal:'debit', fs:'Current Assets'},
+  {id:'1010', en:'Bank — NBE Current Account', ar:'البنك — الحساب الجاري NBE', type:'asset', normal:'debit', fs:'Current Assets'},
+  {id:'1020', en:'Accounts Receivable (AR)', ar:'الحسابات المدينة (العملاء)', type:'asset', normal:'debit', fs:'Current Assets'},
+  {id:'1030', en:'Inventory — Trading Goods', ar:'المخزون — بضاعة تجارية', type:'asset', normal:'debit', fs:'Current Assets'},
+  {id:'1040', en:'Prepaid Insurance', ar:'تأمين مقدم', type:'asset', normal:'debit', fs:'Current Assets'},
+  {id:'1050', en:'VAT Input (Recoverable)', ar:'ضريبة القيمة المضافة المدخلات (قابلة للخصم)', type:'asset', normal:'debit', fs:'Current Assets'},
+  {id:'1100', en:'Office Equipment — Cost', ar:'أثاث ومعدات مكتبية — التكلفة', type:'asset', normal:'debit', fs:'Non-Current Assets'},
+  {id:'1110', en:'Accumulated Depreciation — Office Equipment', ar:'مجمع إهلاك المعدات المكتبية', type:'asset', normal:'credit', fs:'Non-Current Assets'},
+  {id:'1120', en:'Delivery Vehicles — Cost', ar:'وسائل نقل — التكلفة', type:'asset', normal:'debit', fs:'Non-Current Assets'},
+  {id:'1130', en:'Accumulated Depreciation — Vehicles', ar:'مجمع إهلاك وسائل النقل', type:'asset', normal:'credit', fs:'Non-Current Assets'},
+  {id:'2000', en:'Accounts Payable (AP)', ar:'الحسابات الدائنة (الموردون)', type:'liability', normal:'credit', fs:'Current Liabilities'},
+  {id:'2010', en:'VAT Output (Payable)', ar:'ضريبة القيمة المضافة المخرجات (مستحقة)', type:'liability', normal:'credit', fs:'Current Liabilities'},
+  {id:'2020', en:'Accrued Salaries', ar:'رواتب مستحقة', type:'liability', normal:'credit', fs:'Current Liabilities'},
+  {id:'2030', en:'Accrued Utilities', ar:'مرافق مستحقة', type:'liability', normal:'credit', fs:'Current Liabilities'},
+  {id:'3000', en:"Owner's Capital", ar:'رأس مال المالك', type:'equity', normal:'credit', fs:'Equity'},
+  {id:'3100', en:'Retained Earnings', ar:'الأرباح المحتجزة', type:'equity', normal:'credit', fs:'Equity'},
+  {id:'3200', en:'Current Year Earnings', ar:'أرباح السنة الحالية', type:'equity', normal:'credit', fs:'Equity'},
+  {id:'4000', en:'Sales Revenue', ar:'إيرادات المبيعات', type:'revenue', normal:'credit', fs:'Revenue'},
+  {id:'4100', en:'Sales Returns & Discounts', ar:'مردودات وخصومات المبيعات', type:'revenue', normal:'debit', fs:'Revenue'},
+  {id:'5000', en:'Cost of Goods Sold (COGS)', ar:'تكلفة البضاعة المباعة', type:'expense', normal:'debit', fs:'Expenses'},
+  {id:'5100', en:'Rent Expense', ar:'مصروف الإيجار', type:'expense', normal:'debit', fs:'Expenses'},
+  {id:'5200', en:'Salaries Expense', ar:'مصروف الرواتب', type:'expense', normal:'debit', fs:'Expenses'},
+  {id:'5300', en:'Utilities Expense', ar:'مصروف المرافق', type:'expense', normal:'debit', fs:'Expenses'},
+  {id:'5400', en:'Depreciation Expense', ar:'مصروف الإهلاك', type:'expense', normal:'debit', fs:'Expenses'},
+  {id:'5500', en:'Bank Charges', ar:'مصاريف بنكية', type:'expense', normal:'debit', fs:'Expenses'},
+  {id:'5600', en:'Insurance Expense', ar:'مصروف التأمين', type:'expense', normal:'debit', fs:'Expenses'},
+  {id:'5700', en:'Inventory Shrinkage', ar:'فقد المخزون', type:'expense', normal:'debit', fs:'Expenses'}
+];
+const ACC = Object.fromEntries(ACCOUNTS.map(a=>[a.id,a]));
+
+const OPENING = {
+  '1000':50000, '1010':500000, '1020':120000, '1030':200000, '1040':0,
+  '1050':0, '1100':150000, '1110':30000, '1120':300000, '1130':60000,
+  '2000':80000, '2010':15000, '2020':0, '2030':0,
+  '3000':1135000, '3100':0, '3200':0,
+  '4000':0, '4100':0, '5000':0, '5100':0, '5200':0, '5300':0,
+  '5400':0, '5500':0, '5600':0, '5700':0
+};
+
+const SUPPLIERS = [
+  {id:'S001', en:'Cairo Suppliers Co.', ar:'شركة موردي القاهرة'},
+  {id:'S002', en:'Alexandria Trading House', ar:'بيت تجارة الإسكندرية'},
+  {id:'S003', en:'Delta Office Systems', ar:'أنظمة مكتبية دلتا'}
+];
+const CUSTOMERS = [
+  {id:'C001', en:'Alex Retail Group', ar:'مجموعة الإسكندرية للتجزئة'},
+  {id:'C002', en:'Cairo Mall Stores', ar:'متاجر مول القاهرة'},
+  {id:'C003', en:'Giza Market Co.', ar:'شركة سوق الجيزة'}
+];
+const ASSETS = [
+  {id:'FA001', en:'Office Equipment — Existing', ar:'معدات مكتبية — قائمة', cost:150000, accDep:30000, lifeYears:5, monthly:2500},
+  {id:'FA002', en:'Delivery Van — Existing', ar:'سيارة توصيل — قائمة', cost:300000, accDep:60000, lifeYears:5, monthly:5000},
+  {id:'FA003', en:'Office Equipment — New (Jan)', ar:'معدات مكتبية — جديدة (يناير)', cost:60000, accDep:0, lifeYears:5, monthly:1000}
+];
+
+/* ---------- SIMULATOR ENGINE ---------- */
+function newSimState(){
+  return {
+    period:'2025-01', periodOpen:true, closed:false,
+    transactions:[], nextNo:1001,
+    reconciled:false, depreciationPosted:false,
+    completedSteps:{}, seeded:false
+  };
+}
+function ensureSim(){
+  if(!state.erp) return null;
+  if(!state.sim[state.erp]) state.sim[state.erp] = newSimState();
+  return state.sim[state.erp];
+}
+function getBalance(accId, sim){
+  sim = sim || ensureSim();
+  let bal = OPENING[accId] || 0;
+  const acc = ACC[accId];
+  for(const tx of sim.transactions){
+    for(const l of tx.lines){
+      if(l.account === accId){
+        if(acc.normal === 'debit') bal += (Number(l.debit)||0) - (Number(l.credit)||0);
+        else bal += (Number(l.credit)||0) - (Number(l.debit)||0);
+      }
+    }
+  }
+  return bal;
+}
+function netIncome(sim){
+  let rev = 0, exp = 0;
+  for(const a of ACCOUNTS){
+    const b = getBalance(a.id, sim);
+    if(a.type === 'revenue') rev += (a.normal === 'credit' ? b : -b);
+    if(a.type === 'expense') exp += (a.normal === 'debit' ? b : -b);
+  }
+  return rev - exp;
+}
+function trialBalance(sim){
+  return ACCOUNTS.map(a=>{
+    const b = getBalance(a.id, sim);
+    let debit = 0, credit = 0;
+    if(a.normal === 'debit'){
+      if(b >= 0) debit = b; else credit = -b;
+    } else {
+      if(b >= 0) credit = b; else debit = -b;
+    }
+    return {account:a, debit, credit, raw:b};
+  }).filter(r=>Math.abs(r.debit)>0.005 || Math.abs(r.credit)>0.005);
+}
+function validateJournal(lines){
+  if(!lines.length) return {ok:false, msg:t('zeroLines')};
+  let dr=0, cr=0;
+  for(const l of lines){
+    if(!ACC[l.account]) return {ok:false, msg:t('invalidAccount')};
+    dr += Number(l.debit)||0; cr += Number(l.credit)||0;
+    if((Number(l.debit)||0) > 0 && (Number(l.credit)||0) > 0) return {ok:false, msg:'A line cannot contain both debit and credit.'};
+  }
+  if(Math.abs(dr-cr) > 0.005) return {ok:false, msg:t('notBalanced')};
+  if(dr === 0) return {ok:false, msg:t('zeroLines')};
+  return {ok:true, dr, cr};
+}
+function postJournal(sim, lines, meta){
+  const v = validateJournal(lines);
+  if(!v.ok) return v;
+  if(!sim.periodOpen || sim.closed) return {ok:false, msg:t('periodClosed')};
+  const journal = {
+    no:'JE-'+(sim.nextNo++), date: meta.date || '2025-01-31',
+    description: meta.description || 'Manual journal',
+    reference: meta.reference || '', type: meta.type || 'SA',
+    lines: lines.map(l=>({account:l.account, debit:Number(l.debit)||0, credit:Number(l.credit)||0, description:l.description||''}))
+  };
+  sim.transactions.push(journal);
+  saveState();
+  return {ok:true, journal};
+}
+
+/* ---------- CURRICULUM DATA ---------- */
+const SHARED_LESSONS = [
+  {id:'what-erp', title:{en:'What ERP means', ar:'ما معنى ERP؟'}, body:{
+    en:'ERP (Enterprise Resource Planning) is an integrated software platform that connects finance, purchasing, sales, inventory, banking, HR, and other functions on one shared database. When a purchase order is approved, the system can automatically create commitments, receive goods, post the supplier liability, and update inventory — without re-keying data in the finance system.',
+    ar:'ERP (تخطيط موارد المؤسسات) هو نظام برمجي متكامل يربط المالية والمشتريات والمبيعات والمخزون والبنوك والموارد البشرية وغيرها على قاعدة بيانات مشتركة. عند اعتماد أمر شراء يستطيع النظام إنشاء التزامات واستلام البضاعة وترحيل مديونية المورد وتحديث المخزون تلقائيًا دون إعادة إدخال البيانات في النظام المالي.'
+  }},
+  {id:'why-erp', title:{en:'Why companies use ERP systems', ar:'لماذا تستخدم الشركات أنظمة ERP؟'}, body:{
+    en:'Companies use ERP to create a single source of truth, reduce manual reconciliation, enforce approval controls, shorten the close, and give managers real-time visibility. A transaction posted in one module is immediately visible to accounting and reporting.',
+    ar:'تستخدم الشركات ERP لإنشاء مصدر واحد للحقيقة وتقليل المطابقات اليدوية وتطبيق ضوابط الاعتماد وتقصير الإغلاق ومنح الإدارة رؤية فورية. المعاملة المرحّلة في وحدة واحدة تظهر فورًا للمحاسبة والتقارير.'
+  }},
+  {id:'erp-vs-software', title:{en:'ERP versus traditional accounting software', ar:'ERP مقابل برامج المحاسبة التقليدية'}, body:{
+    en:'Traditional accounting software records financial transactions. ERP also records the operational events that create them — purchase orders, goods receipts, sales orders, inventory movements, and bank statements. Accounting entries are often generated automatically from those events through subledgers.',
+    ar:'برامج المحاسبة التقليدية تسجل المعاملات المالية. أما ERP فيسجل أيضًا الأحداث التشغيلية التي تنشئها — أوامر الشراء واستلام البضاعة وأوامر البيع وحركات المخزون وكشوف البنك. غالبًا ما تُنشأ القيود المحاسبية تلقائيًا من هذه الأحداث عبر دفتر الأستاذ المساعد.'
+  }},
+  {id:'connect', title:{en:'How ERP connects purchasing, sales, inventory, banking, and accounting', ar:'كيف يربط ERP المشتريات والمبيعات والمخزون والبنوك والمحاسبة'}, body:{
+    en:'Purchasing creates a purchase order and goods receipt; the supplier invoice posts to AP and inventory. Sales creates a customer invoice; the system posts revenue, VAT, AR, and COGS. Banking records receipts and payments and supports bank reconciliation. All of these flows converge in the General Ledger.',
+    ar:'تنشئ المشتريات أمر شراء واستلام بضاعة؛ وتُرحّل فاتورة المورد إلى الحسابات الدائنة والمخزون. تنشئ المبيعات فاتورة عميل؛ ويرحّل النظام الإيراد وضريبة القيمة المضافة والحسابات المدينة وتكلفة البضاعة المباعة. تسجل البنوك التحصيلات والمدفوعات وتدعم التسوية. كل هذه التدفقات تتجمع في دفتر الأستاذ العام.'
+  }},
+  {id:'structures', title:{en:'Company structures and legal entities', ar:'هياكل الشركة والكيانات القانونية'}, body:{
+    en:'A legal entity is an organisation that can own assets, sign contracts, and report to tax authorities. ERP structures it differently by product. SAP uses Company Code and controlling areas; Oracle uses Legal Entity, Business Unit, and Ledger. The accounting impact is similar, but navigation and terminology differ.',
+    ar:'الكيان القانوني منظمة تمتلك أصولًا وتوقع عقودًا وتقدم تقارير للسلطات الضريبية. ينظمه ERP بطرق مختلفة حسب المنتج. يستخدم SAP رمز الشركة (Company Code) ونطاقات التحكم؛ ويستخدم Oracle الكيان القانوني ووحدة الأعمال ودفتر الأستاذ. الأثر المحاسبي متشابه لكن التنقل والمصطلحات تختلف.'
+  }},
+  {id:'coa', title:{en:'Chart of Accounts', ar:'دليل الحسابات'}, body:{
+    en:'The Chart of Accounts is the structured list of every general ledger account a company uses. It defines account numbers, names, types, and financial statement placement. SAP and Oracle both require a well-governed COA before transactions can be posted.',
+    ar:'دليل الحسابات هو القائمة المنظمة لكل حسابات دفتر الأستاذ العام التي تستخدمها الشركة. يحدد أرقام الحسابات وأسمائها وأنواعها وموقعها في القوائم المالية. يتطلب SAP و Oracle كليهما دليل حسابات محكومًا جيدًا قبل ترحيل المعاملات.'
+  }},
+  {id:'gl', title:{en:'General Ledger', ar:'دفتر الأستاذ العام'}, body:{
+    en:'The General Ledger is the central repository of all posted financial transactions. It receives entries from subledgers and manual journals. Every trial balance and financial statement is generated from the GL.',
+    ar:'دفتر الأستاذ العام هو المستودع المركزي لجميع المعاملات المالية المرحّلة. يستقبل القيود من دفاتر الأستاذ المساعدة والقيود اليدوية. يُنشأ ميزان المراجعة وكل القوائم المالية من دفتر الأستاذ العام.'
+  }},
+  {id:'ap', title:{en:'Accounts Payable', ar:'الحسابات الدائنة'}, body:{
+    en:'Accounts Payable records amounts owed to suppliers for goods or services received but not yet paid. AP is a liability. Typical AP tasks include recording supplier invoices, matching them to purchase orders and goods receipts, managing payment terms, paying suppliers, and reconciling supplier balances.',
+    ar:'تسجل الحسابات الدائنة المبالغ المستحقة للموردين مقابل سلع أو خدمات تم استلامها ولم تُدفع بعد. الحسابات الدائنة التزام. تشمل المهام النموذجية تسجيل فواتير الموردين ومطابقتها مع أوامر الشراء واستلام البضاعة وإدارة شروط السداد ودفع الموردين ومطابقة أرصدة الموردين.'
+  }},
+  {id:'ar', title:{en:'Accounts Receivable', ar:'الحسابات المدينة'}, body:{
+    en:'Accounts Receivable records amounts customers owe for goods or services delivered. AR is an asset. Typical AR tasks include creating customer invoices, recording receipts, applying receipts to invoices, issuing credit memos, and following up on overdue balances.',
+    ar:'تسجل الحسابات المدينة المبالغ المستحقة على العملاء مقابل سلع أو خدمات تم تسليمها. الحسابات المدينة أصل. تشمل المهام النموذجية إنشاء فواتير العملاء وتسجيل التحصيلات وتطبيقها على الفواتير وإصدار إشعارات دائنة ومتابعة الأرصدة المتأخرة.'
+  }},
+  {id:'cost-centers', title:{en:'Cost Centres and Profit Centres', ar:'مراكز التكلفة ومراكز الربح'}, body:{
+    en:'A cost centre collects costs for a responsibility area, such as Finance or Warehouse. A profit centre collects revenues and costs for a business segment. They support management reporting and allocations without changing the legal-entity books.',
+    ar:'يجمع مركز التكلفة التكاليف الخاصة بمسؤولية معينة مثل المالية أو المستودع. ويجمع مركز الربح الإيرادات والتكاليف لقطاع تجاري. يدعمان تقارير الإدارة والتوزيعات دون تغيير دفاتر الكيان القانوني.'
+  }},
+  {id:'periods', title:{en:'Accounting periods and fiscal years', ar:'فترات المحاسبة والسنة المالية'}, body:{
+    en:'An accounting period is the window in which transactions are posted. A fiscal year is the annual reporting cycle. ERP systems control whether a period is open, closed, or future-enterable. You cannot post a journal into a closed period.',
+    ar:'فترة المحاسبة هي النافذة التي تُرحّل فيها المعاملات. والسنة المالية هي دورة التقارير السنوية. تتحكم أنظمة ERP فيما إذا كانت الفترة مفتوحة أو مغلقة أو قابلة للإدخال مستقبلًا. لا يمكن ترحيل قيد في فترة مغلقة.'
+  }},
+  {id:'master-data', title:{en:'Master data versus transactional data', ar:'البيانات الرئيسية مقابل بيانات المعاملات'}, body:{
+    en:'Master data is relatively stable reference data: suppliers, customers, accounts, assets, employees. Transactional data is the day-to-day documents: invoices, payments, journals, receipts. Good master-data governance prevents duplicate suppliers and misclassified accounts.',
+    ar:'البيانات الرئيسية هي بيانات مرجعية مستقرة نسبيًا: الموردون والعملاء والحسابات والأصول والموظفون. أما بيانات المعاملات فهي المستندات اليومية: الفواتير والمدفوعات والقيود والتحصيلات. حوكمة البيانات الرئيسية الجيدة تمنع تكرار الموردين وتصنيف الحسابات بشكل خاطئ.'
+  }},
+  {id:'debit-credit', title:{en:'Debit and credit principles', ar:'مبادئ المدين والدائن'}, body:{
+    en:'Debit (Dr) means the left side of an account; credit (Cr) means the right side. Assets and expenses normally carry debit balances; liabilities, equity, and revenue normally carry credit balances. Every journal entry must have equal total debits and credits.',
+    ar:'المدين (Dr) هو الجانب الأيسر من الحساب؛ والدائن (Cr) هو الجانب الأيمن. الأصول والمصروفات لها عادةً أرصدة مدينة؛ والالتزامات وحقوق الملكية والإيرادات لها عادةً أرصدة دائنة. يجب أن يتساوى إجمالي المدين وإجمالي الدائن في كل قيد.'
+  }},
+  {id:'journal', title:{en:'Journal entries', ar:'قيود اليومية'}, body:{
+    en:'A journal entry records a financial transaction as debits and credits with a date, description, reference, and lines. Manual journals are used for adjustments, accruals, reclassifications, and corrections. Operational journals are often generated automatically by subledgers.',
+    ar:'يسجل قيد اليومية معاملة مالية كمدين ودائن مع تاريخ ووصف ومرجع وسطور. تُستخدم القيود اليدوية للتسويات والاستحقاقات وإعادة التصنيف والتصحيحات. وغالبًا ما تُنشأ القيود التشغيلية تلقائيًا بواسطة دفاتر الأستاذ المساعدة.'
+  }},
+  {id:'subledgers', title:{en:'Subledgers and their relationship with the GL', ar:'دفاتر الأستاذ المساعدة وعلاقتها بدفتر الأستاذ العام'}, body:{
+    en:'Subledgers hold detailed operational accounting: AP invoices, AR invoices, asset depreciation, bank transactions. They summarise and transfer entries to the GL. The GL control account must reconcile to the subledger detail — for example, the AP control account must equal the total supplier balances.',
+    ar:'تحتفظ دفاتر الأستاذ المساعدة بالمحاسبة التشغيلية التفصيلية: فواتير الموردين وفواتير العملاء وإهلاك الأصول ومعاملات البنك. تلخص القيود وتحولها إلى دفتر الأستاذ العام. يجب أن يتطابق حساب المراقبة في دفتر الأستاذ العام مع تفاصيل الدفتر المساعد — مثلًا يجب أن يساوي حساب مراقبة الموردين إجمالي أرصدة الموردين.'
+  }},
+  {id:'controls', title:{en:'Approval workflows and internal controls', ar:'سير عمل الاعتماد والضوابط الداخلية'}, body:{
+    en:'ERP systems enforce segregation of duties: the person who creates a supplier may not be the person who approves payments. Approval workflows route invoices and journals to authorised approvers. Audit trails record who created, changed, approved, and posted each document.',
+    ar:'تفرض أنظمة ERP فصل المهام: الشخص الذي ينشئ المورد قد لا يكون الشخص الذي يعتمد المدفوعات. توجه سير عمل الاعتماد الفواتير والقيود إلى معتمدين مخولين. وتسجل مسارات التدقيق من أنشأ ومن عدّل ومن اعتمد ومن رحّل كل مستند.'
+  }},
+  {id:'reporting', title:{en:'Financial reporting', ar:'التقارير المالية'}, body:{
+    en:'Core financial reports include the trial balance, balance sheet, income statement, and cash flow statement. ERP reporting also covers AP/AR aging, cost-centre reports, and subledger reconciliations. Reports must be traceable to posted transactions.',
+    ar:'تشمل التقارير المالية الأساسية ميزان المراجعة والميزانية العمومية وقائمة الدخل وقائمة التدفقات النقدية. وتغطي تقارير ERP أيضًا أعمار الحسابات الدائنة والمدينة وتقارير مراكز التكلفة ومطابقات دفاتر الأستاذ المساعدة. يجب أن تكون التقارير قابلة للتتبع إلى المعاملات المرحّلة.'
+  }},
+  {id:'closing', title:{en:'Month-end and year-end closing', ar:'إغلاق الشهر والسنة'}, body:{
+    en:'Month-end close is a controlled sequence: post all subledger transactions, reconcile banks and control accounts, post accruals, prepayments, and depreciation, review the trial balance, and close the period. Year-end close also involves closing temporary accounts and producing statutory reports.',
+    ar:'إغلاق الشهر تسلسل محكوم: ترحيل جميع معاملات الدفاتر المساعدة ومطابقة البنوك وحسابات المراقبة وترحيل الاستحقاقات والمصروفات المقدمة والإهلاك ومراجعة ميزان المراجعة وإغلاق الفترة. ويتضمن إغلاق السنة أيضًا إقفال الحسابات المؤقتة وإنتاج التقارير القانونية.'
+  }}
+];
+
+const SAP_MODULES = [
+  {id:'sap-m1', title:{en:'SAP Module 1 — Introduction to SAP', ar:'وحدة SAP 1 — مقدمة إلى SAP'}, topics:{
+    en:['What SAP S/4HANA is','SAP Fiori launchpad and navigation','Apps, menus, and workspaces','Company codes, ledgers, fiscal years, and posting periods','Chart of Accounts','Business partners and master data','Document types and document numbers','User roles and authorisations'],
+    ar:['ما هو SAP S/4HANA','لوحة SAP Fiori والتنقل','التطبيقات والقوائم ومساحات العمل','رموز الشركات ودفاتر الأستاذ والسنوات المالية وفترات الترحيل','دليل الحسابات','شركاء الأعمال والبيانات الرئيسية','أنواع المستندات وأرقام المستندات','أدوار المستخدم والصلاحيات']
+  }, body:{
+    en:'SAP S/4HANA is SAP’s ERP suite built on the SAP HANA in-memory database. Finance users work mainly through SAP Fiori apps rather than classic transaction codes. The Fiori launchpad presents role-based tiles; opening a tile launches an app such as “Manage Journal Entries” (F0717A) or “Create Supplier Invoice – Advanced” (MIRO). A Company Code is an independent legal accounting entity. Posting periods control when documents can be posted; a document date can differ from the posting date. Document types (for example SA for a general journal) control number ranges and account types. Business partners combine supplier and customer master data in S/4HANA.',
+    ar:'SAP S/4HANA هو نظام ERP من SAP مبني على قاعدة بيانات SAP HANA الذكية. يعمل مستخدمو المالية أساسًا عبر تطبيقات SAP Fiori بدلًا من أكواد المعاملات الكلاسيكية. تعرض لوحة Fiori بلاطات حسب الدور؛ وفتح البلاطة يشغّل تطبيقًا مثل “Manage Journal Entries” (F0717A) أو “Create Supplier Invoice – Advanced” (MIRO). رمز الشركة (Company Code) هو كيان محاسبي قانوني مستقل. تتحكم فترات الترحيل في توقيت ترحيل المستندات؛ وقد يختلف تاريخ المستند عن تاريخ الترحيل. تتحكم أنواع المستندات (مثل SA للقيد العام) في نطاقات الأرقام وأنواع الحسابات. يجمع شريك الأعمال في S/4HANA بيانات المورد والعميل معًا.'
+  }},
+  {id:'sap-m2', title:{en:'SAP Module 2 — General Ledger', ar:'وحدة SAP 2 — دفتر الأستاذ العام'}, topics:{
+    en:['Creating and posting journal entries','Entering debit and credit lines','Posting dates and document dates','Journal entry validation','Recurring journals and accruals','Reversing journal entries','Trial balance','General ledger line items','Financial statement reporting','Period-end activities'],
+    ar:['إنشاء وترحيل قيود اليومية','إدخال سطور المدين والدائن','تواريخ الترحيل وتواريخ المستندات','التحقق من قيود اليومية','القيود المتكررة والاستحقاقات','عكس قيود اليومية','ميزان المراجعة','بنود دفتر الأستاذ العام','تقارير القوائم المالية','أنشطة نهاية الفترة']
+  }, body:{
+    en:'In SAP S/4HANA you can post a general journal through the “Post General Journal Entries” app (F0718) or manage existing journals through “Manage Journal Entries” (F0717A). Enter header data (journal entry date, posting date, period, document type, company code, currency) and line items (G/L account, debit or credit amount, cost centre or profit centre if relevant). The system validates that debits equal credits and that the posting period is open. Recurring journals and accruals can be scheduled. Reversal journals reference the original document. The trial balance is generated from the universal journal (ACDOCA).',
+    ar:'في SAP S/4HANA يمكنك ترحيل قيد عام عبر تطبيق “Post General Journal Entries” (F0718) أو إدارة القيود الحالية عبر “Manage Journal Entries” (F0717A). أدخل بيانات الرأس (تاريخ القيد وتاريخ الترحيل والفترة ونوع المستند ورمز الشركة والعملة) وسطور البنود (حساب الأستاذ العام والمبلغ المدين أو الدائن ومركز التكلفة أو الربح عند الحاجة). يتحقق النظام من تساوي المدين والدائن ومن أن فترة الترحيل مفتوحة. يمكن جدولة القيود المتكررة والاستحقاقات. تشير قيود العكس إلى المستند الأصلي. يُنشأ ميزان المراجعة من دفتر اليومية الموحد (ACDOCA).'
+  }},
+  {id:'sap-m3', title:{en:'SAP Module 3 — Accounts Payable', ar:'وحدة SAP 3 — الحسابات الدائنة'}, topics:{
+    en:['Supplier and business partner master data','Recording supplier invoices','Invoice verification','Purchase order matching','Credit memos','Payment terms and due dates','Supplier payments','Payment blocks and approval workflows','AP aging and reconciliation'],
+    ar:['البيانات الرئيسية للموردين وشركاء الأعمال','تسجيل فواتير الموردين','التحقق من الفواتير','مطابقة أوامر الشراء','إشعارات الدائن','شروط السداد وتواريخ الاستحقاق','مدفوعات الموردين','حظر الدفع وسير عمل الاعتماد','أعمار الحسابات الدائنة والمطابقة']
+  }, body:{
+    en:'Supplier invoices are entered through “Create Supplier Invoice – Advanced” (MIRO) or a Fiori supplier-invoice app. The invoice can reference a purchase order and goods receipt, enabling two-way or three-way matching. The system checks price, quantity, and tax tolerances. A credit memo reduces the supplier liability. Payments can be posted manually through “Post Outgoing Payments” (F1612) or through an automatic payment run. Payment blocks prevent payment until disputes are resolved. AP aging reconciles the supplier subledger to the AP control account in the GL.',
+    ar:'تُدخل فواتير الموردين عبر “Create Supplier Invoice – Advanced” (MIRO) أو تطبيق Fiori لفواتير الموردين. يمكن أن تشير الفاتورة إلى أمر شراء واستلام بضاعة، مما يتيح المطابقة الثنائية أو الثلاثية. يتحقق النظام من تفاوتات السعر والكمية والضريبة. يقلل إشعار الدائن من مديونية المورد. يمكن ترحيل المدفوعات يدويًا عبر “Post Outgoing Payments” (F1612) أو عبر تشغيل دفع تلقائي. تمنع حالات حظر الدفع السداد حتى حل النزاعات. تطابق أعمار الحسابات الدائنة الدفتر المساعد مع حساب مراقبة الموردين في دفتر الأستاذ العام.'
+  }},
+  {id:'sap-m4', title:{en:'SAP Module 4 — Accounts Receivable', ar:'وحدة SAP 4 — الحسابات المدينة'}, topics:{
+    en:['Customer master data','Customer invoicing','Incoming payments','Payment allocation','Credit memos','Customer balances','Overdue receivables','AR aging and reconciliation'],
+    ar:['البيانات الرئيسية للعملاء','فوترة العملاء','المدفوعات الواردة','تخصيص المدفوعات','إشعارات الدائن','أرصدة العملاء','المستحقات المتأخرة','أعمار الحسابات المدينة والمطابقة']
+  }, body:{
+    en:'Customer invoices can be created from sales orders or directly in financial accounting. Incoming payments are recorded and allocated to open invoices; unapplied cash remains on account. Credit memos reduce the customer balance. AR aging classifies receivables by due date, and the AR subledger must reconcile to the AR control account in the GL.',
+    ar:'يمكن إنشاء فواتير العملاء من أوامر البيع أو مباشرة في المحاسبة المالية. تُسجل المدفوعات الواردة وتُخصص للفواتير المفتوحة؛ ويبقى النقد غير المخصص على الحساب. تقلل إشعارات الدائن من رصيد العميل. تصنف أعمار الحسابات المدينة المستحقات حسب تاريخ الاستحقاق، ويجب أن يطابق الدفتر المساعد حساب مراقبة العملاء في دفتر الأستاذ العام.'
+  }},
+  {id:'sap-m5', title:{en:'SAP Module 5 — Asset Accounting', ar:'وحدة SAP 5 — محاسبة الأصول'}, topics:{
+    en:['Fixed asset master records','Asset acquisition','Capitalisation','Depreciation','Asset transfers and disposals','Accumulated depreciation','Asset reporting'],
+    ar:['السجلات الرئيسية للأصول الثابتة','اقتناء الأصول','الرسملة','الإهلاك','نقل الأصول والتخلص منها','مجمع الإهلاك','تقارير الأصول']
+  }, body:{
+    en:'Asset master records hold capitalisation date, useful life, depreciation key, and cost centre. Acquisitions can be posted directly or integrated from AP. Depreciation is usually run periodically through the “Run Depreciation” Fiori app (replacing AFAB in classic navigation). You can simulate before posting. Accumulated depreciation is a contra-asset account. Transfers and retirements update the asset master and generate accounting entries.',
+    ar:'تحتفظ السجلات الرئيسية للأصول بتاريخ الرسملة والعمر الإنتاجي ومفتاح الإهلاك ومركز التكلفة. يمكن ترحيل الاقتناء مباشرة أو دمجه من الحسابات الدائنة. يُشغّل الإهلاك عادةً دوريًا عبر تطبيق “Run Depreciation” في Fiori (بديل AFAB في التنقل الكلاسيكي). يمكنك المحاكاة قبل الترحيل. مجمع الإهلاك حساب مقابل للأصول. تؤدي عمليات النقل والتخلص إلى تحديث سجل الأصل وإنشاء قيود محاسبية.'
+  }},
+  {id:'sap-m6', title:{en:'SAP Module 6 — Bank and Cash Management', ar:'وحدة SAP 6 — إدارة البنك والنقدية'}, topics:{
+    en:['Bank accounts and statements','Incoming and outgoing payments','Bank reconciliation','Payment matching','Bank charges','Investigating reconciliation differences'],
+    ar:['الحسابات البنكية والكشوف','المدفوعات الواردة والصادرة','تسوية البنك','مطابقة المدفوعات','الرسوم البنكية','التحقيق في فروق التسوية']
+  }, body:{
+    en:'Bank statements can be imported or entered manually through “Manage Bank Statements” (F1564). Matching compares statement lines with system payments and receipts. Unmatched items become exceptions. Bank charges are posted as expenses and reduce the bank balance. Reconciliation is complete when the book balance equals the statement balance and all items are cleared or explained.',
+    ar:'يمكن استيراد كشوف البنك أو إدخالها يدويًا عبر “Manage Bank Statements” (F1564). تقارن المطابقة سطور الكشف مع مدفوعات وتحصيلات النظام. تصبح البنود غير المطابقة استثناءات. تُرحّل الرسوم البنكية كمصروفات وتقلل رصيد البنك. تكتمل التسوية عندما يتساوى رصيد الدفاتر مع رصيد الكشف وتُسوّى كل البنود أو تفسر.'
+  }},
+  {id:'sap-m7', title:{en:'SAP Module 7 — Financial Reporting', ar:'وحدة SAP 7 — التقارير المالية'}, topics:{
+    en:['Trial balance','Balance sheet','Income statement','General ledger reports','AP and AR reports','Cost centre reporting','Financial statement analysis'],
+    ar:['ميزان المراجعة','الميزانية العمومية','قائمة الدخل','تقارير دفتر الأستاذ العام','تقارير الحسابات الدائنة والمدينة','تقارير مراكز التكلفة','تحليل القوائم المالية']
+  }, body:{
+    en:'S/4HANA reporting uses the universal journal and Fiori analytical apps. The trial balance proves debit and credit equality. The balance sheet reports assets, liabilities, and equity at a point in time. The income statement reports revenue and expenses over a period. Cost-centre reports support management analysis. Always reconcile report totals to the underlying line items.',
+    ar:'تستخدم تقارير S/4HANA دفتر اليومية الموحد وتطبيقات Fiori التحليلية. يثبت ميزان المراجعة تساوي المدين والدائن. تعرض الميزانية العمومية الأصول والالتزامات وحقوق الملكية في تاريخ معين. وتعرض قائمة الدخل الإيرادات والمصروفات خلال فترة. تدعم تقارير مراكز التكلفة التحليل الإداري. طابق دائمًا إجماليات التقارير مع البنود الأساسية.'
+  }},
+  {id:'sap-m8', title:{en:'SAP Module 8 — Month-End Closing', ar:'وحدة SAP 8 — إغلاق الشهر'}, topics:{
+    en:['Posting accruals and prepayments','Depreciation','Bank reconciliation','AP and AR reconciliation','Reviewing balances','Period-end adjustments','Closing activities','Audit trails and supporting documentation'],
+    ar:['ترحيل الاستحقاقات والمصروفات المقدمة','الإهلاك','تسوية البنك','مطابقة الحسابات الدائنة والمدينة','مراجعة الأرصدة','تسويات نهاية الفترة','أنشطة الإغلاق','مسارات التدقيق والمستندات المؤيدة']
+  }, body:{
+    en:'Month-end close in SAP is a controlled checklist: ensure all invoices and receipts are posted, run depreciation, reconcile banks, reconcile AP and AR subledgers to the GL, post accruals and prepayment adjustments, review the trial balance, and close the posting period. SAP Advanced Financial Closing can model and monitor the close. Supporting documentation and audit trails must be retained.',
+    ar:'إغلاق الشهر في SAP قائمة تحقق محكومة: تأكد من ترحيل كل الفواتير والتحصيلات وشغّل الإهلاك وطابق البنوك وطابق دفاتر الأستاذ المساعدة للحسابات الدائنة والمدينة مع دفتر الأستاذ العام ورحّل الاستحقاقات وتسويات المصروفات المقدمة وراجع ميزان المراجعة وأغلق فترة الترحيل. يمكن لـ SAP Advanced Financial Closing نمذجة الإغلاق ومراقبته. يجب الاحتفاظ بالمستندات المؤيدة ومسارات التدقيق.'
+  }}
+];
+
+const ORACLE_MODULES = [
+  {id:'ora-m1', title:{en:'Oracle Module 1 — Introduction to Oracle', ar:'وحدة Oracle 1 — مقدمة إلى Oracle'}, topics:{
+    en:['Oracle Fusion Cloud ERP','Navigation and work areas','Legal entities and business units','Ledgers and accounting calendars','Chart of Accounts','Suppliers and customers','Roles and security','Approval workflows'],
+    ar:['Oracle Fusion Cloud ERP','التنقل ومساحات العمل','الكيانات القانونية ووحدات الأعمال','دفاتر الأستاذ والتقويمات المحاسبية','دليل الحسابات','الموردون والعملاء','الأدوار والأمان','سير عمل الاعتماد']
+  }, body:{
+    en:'Oracle Fusion Cloud ERP is a cloud suite accessed through a browser. Users navigate through work areas such as General Accounting, Payables, Receivables, Cash Management, and Assets. A Legal Entity is the registered company; a Business Unit is an operational partition; a Ledger combines a Chart of Accounts, accounting calendar, currency, and accounting method. Roles and privileges control access. Approval workflows route journals, invoices, and payments.',
+    ar:'Oracle Fusion Cloud ERP هو نظام سحابي يُ accessed عبر المتصفح. يتنقل المستخدمون عبر مساحات عمل مثل General Accounting وPayables وReceivables وCash Management وAssets. الكيان القانوني هو الشركة المسجلة؛ ووحدة الأعمال تقسيم تشغيلي؛ ودفتر الأستاذ يجمع دليل الحسابات والتقويم المحاسبي والعملة وطريقة المحاسبة. تتحكم الأدوار والصلاحيات في الوصول. توجه سير عمل الاعتماد القيود والفواتير والمدفوعات.'
+  }},
+  {id:'ora-m2', title:{en:'Oracle Module 2 — General Ledger', ar:'وحدة Oracle 2 — دفتر الأستاذ العام'}, topics:{
+    en:['Journal creation and entry','Journal validation and posting','Journal sources and categories','Manual journals','Accruals and reversals','Account inquiry','Trial balance','Financial reporting','Period close'],
+    ar:['إنشاء القيود وإدخالها','التحقق من القيود وترحيلها','مصادر القيود وفئاتها','القيود اليدوية','الاستحقاقات والعكس','الاستعلام عن الحساب','ميزان المراجعة','التقارير المالية','إغلاق الفترة']
+  }, body:{
+    en:'Create manual journals through General Accounting → Journals → Create Journal. Enter the journal batch, description, accounting period, ledger, category, and lines. The accounting date determines the period. Validate and post the journal. Journals can be reversed. Account inquiry shows balances and detail. The trial balance is generated from the ledger. Period close requires all subledgers to be accounted and transferred to the GL before the GL period is closed.',
+    ar:'أنشئ قيودًا يدوية عبر General Accounting → Journals → Create Journal. أدخل دفعة القيد والوصف وفترة المحاسبة ودفتر الأستاذ والفئة والسطور. يحدد تاريخ المحاسبة الفترة. تحقق من القيد وارحّله. يمكن عكس القيود. يعرض الاستعلام عن الحساب الأرصدة والتفاصيل. يُنشأ ميزان المراجعة من دفتر الأستاذ. يتطلب إغلاق الفترة محاسبة جميع الدفاتر المساعدة وتحويلها إلى دفتر الأستاذ العام قبل إغلاق فترة دفتر الأستاذ.'
+  }},
+  {id:'ora-m3', title:{en:'Oracle Module 3 — Payables', ar:'وحدة Oracle 3 — الحسابات الدائنة'}, topics:{
+    en:['Supplier setup','Supplier invoices','Invoice validation','Holds and exceptions','Payment terms','Payment processing','Credit memos','Supplier balances','AP aging and reconciliation'],
+    ar:['إعداد المورد','فواتير الموردين','التحقق من الفاتورة','الحجوزات والاستثناءات','شروط السداد','معالجة المدفوعات','إشعارات الدائن','أرصدة الموردين','أعمار الحسابات الدائنة والمطابقة']
+  }, body:{
+    en:'Suppliers are created with payment terms, bank details, and tax information. Invoices are entered in the Invoices work area, validated, and may be placed on hold. Invoice validation checks matching, tax, and period conditions. Payments are processed through payment terms and payment methods. Credit memos reduce the liability. AP aging reconciles supplier balances to the AP control account.',
+    ar:'يُنشأ الموردون بشروط السداد والبيانات البنكية والمعلومات الضريبية. تُدخل الفواتير في مساحة عمل Invoices وتُتحقق وقد تُحجز. يتحقق التحقق من الفاتورة من المطابقة والضريبة وشروط الفترة. تُعالج المدفوعات عبر شروط وطرق السداد. تقلل إشعارات الدائن من الالتزام. تطابق أعمار الحسابات الدائنة أرصدة الموردين مع حساب مراقبة الموردين.'
+  }},
+  {id:'ora-m4', title:{en:'Oracle Module 4 — Receivables', ar:'وحدة Oracle 4 — الحسابات المدينة'}, topics:{
+    en:['Customer setup','Transactions and invoices','Receipts','Receipt application','Credit memos','Outstanding balances','Collections and overdue accounts','AR aging and reconciliation'],
+    ar:['إعداد العميل','المعاملات والفواتير','التحصيلات','تطبيق التحصيل','إشعارات الدائن','الأرصدة المستحقة','التحصيل والحسابات المتأخرة','أعمار الحسابات المدينة والمطابقة']
+  }, body:{
+    en:'Customers are created with credit limits and payment terms. Invoices and credit memos are entered in Receivables. Receipts are created and applied to open invoices; unapplied cash remains on account. Collections work areas help follow up on overdue balances. AR aging must reconcile to the AR control account in the GL.',
+    ar:'يُنشأ العملاء بحدود ائتمانية وشروط سداد. تُدخل الفواتير وإشعارات الدائن في Receivables. تُنشأ التحصيلات وتُطبق على الفواتير المفتوحة؛ ويبقى النقد غير المطبق على الحساب. تساعد مساحات التحصيل في متابعة الأرصدة المتأخرة. يجب أن تطابق أعمار الحسابات المدينة حساب مراقبة العملاء في دفتر الأستاذ العام.'
+  }},
+  {id:'ora-m5', title:{en:'Oracle Module 5 — Cash Management', ar:'وحدة Oracle 5 — إدارة النقدية'}, topics:{
+    en:['Bank accounts','Bank statement processing','Bank reconciliation','Transaction matching','Reconciliation exceptions','Bank charges and adjustments'],
+    ar:['الحسابات البنكية','معالجة كشف البنك','تسوية البنك','مطابقة المعاملات','استثناءات التسوية','الرسوم البنكية والتسويات']
+  }, body:{
+    en:'Bank accounts are defined with reconciliation rules. Statements are imported or entered, then matched automatically or manually. Exceptions are classified as ambiguous, date, or amount differences. Bank charges and adjustments are posted. Reconciliation is complete when the statement is reconciled and the book balance agrees.',
+    ar:'تُعرّف الحسابات البنكية بقواعد التسوية. تُستورد الكشوف أو تُدخل ثم تُطابق تلقائيًا أو يدويًا. تصنف الاستثناءات إلى غامضة أو فروق تاريخ أو مبلغ. تُرحّل الرسوم البنكية والتسويات. تكتمل التسوية عندما يتم مطابقة الكشف ويتفق رصيد الدفاتر.'
+  }},
+  {id:'ora-m6', title:{en:'Oracle Module 6 — Fixed Assets', ar:'وحدة Oracle 6 — الأصول الثابتة'}, topics:{
+    en:['Asset additions','Capitalisation','Depreciation','Asset adjustments','Transfers and retirements','Asset accounting and reporting'],
+    ar:['إضافات الأصول','الرسملة','الإهلاك','تسويات الأصول','النقل والتخلص','محاسبة الأصول والتقارير']
+  }, body:{
+    en:'Assets are added manually or through mass additions from Payables. Capitalisation records cost and useful life. Depreciation is calculated and posted periodically. Adjustments, transfers, and retirements update asset balances. Asset accounting creates journal entries in Subledger Accounting and transfers them to the GL.',
+    ar:'تُضاف الأصول يدويًا أو عبر الإضافات الجماعية من Payables. تسجل الرسملة التكلفة والعمر الإنتاجي. يُحسب الإهلاك ويُرحّل دوريًا. تؤدي التسويات والنقل والتخلص إلى تحديث أرصدة الأصول. تنشئ محاسبة الأصول قيودًا في محاسبة الدفاتر المساعدة وتحولها إلى دفتر الأستاذ العام.'
+  }},
+  {id:'ora-m7', title:{en:'Oracle Module 7 — Financial Reporting', ar:'وحدة Oracle 7 — التقارير المالية'}, topics:{
+    en:['Trial balance','Balance sheet','Income statement','Account analysis','Financial reporting','Subledger reconciliation','Budget versus actual reporting'],
+    ar:['ميزان المراجعة','الميزانية العمومية','قائمة الدخل','تحليل الحساب','التقارير المالية','مطابقة الدفاتر المساعدة','تقارير الموازنة مقابل الفعلي']
+  }, body:{
+    en:'Oracle Financial Reporting uses balances and subledger detail. The trial balance proves equality. The balance sheet and income statement are generated from ledger balances. Account analysis drills into journals and subledger transactions. Subledger reconciliation ensures AP, AR, and FA control accounts agree to their subledgers. Budget-versus-actual reports compare planned and actual amounts.',
+    ar:'يستخدم Oracle Financial Reporting الأرصدة وتفاصيل الدفاتر المساعدة. يثبت ميزان المراجعة التساوي. تُنشأ الميزانية العمومية وقائمة الدخل من أرصدة دفتر الأستاذ. يحلل Account Analysis القيود ومعاملات الدفاتر المساعدة. تضمن مطابقة الدفاتر المساعدة اتفاق حسابات مراقبة AP وAR وFA مع دفاترها المساعدة. تقارن تقارير الموازنة مقابل الفعلي المبالغ المخططة والفعلية.'
+  }},
+  {id:'ora-m8', title:{en:'Oracle Module 8 — Period-End Closing', ar:'وحدة Oracle 8 — إغلاق الفترة'}, topics:{
+    en:['Payables and receivables reconciliation','Subledger accounting','Transfer to General Ledger','Journal review and posting','Bank reconciliation','Depreciation','Closing accounting periods','Reviewing exceptions and unresolved balances'],
+    ar:['مطابقة الحسابات الدائنة والمدينة','محاسبة الدفاتر المساعدة','التحويل إلى دفتر الأستاذ العام','مراجعة القيود وترحيلها','تسوية البنك','الإهلاك','إغلاق فترات المحاسبة','مراجعة الاستثناءات والأرصدة غير المحلولة']
+  }, body:{
+    en:'Close subledgers before the GL: complete Payables, Receivables, Assets, and Cash Management, run Create Accounting, transfer to GL, review and post journals, reconcile banks, and close the GL period. Oracle prevents GL period closure when open subledger periods exist (depending on ledger options). Exceptions and unresolved balances must be investigated and documented.',
+    ar:'أغلق الدفاتر المساعدة قبل دفتر الأستاذ العام: أكمل Payables وReceivables وAssets وCash Management وشغّل Create Accounting وحوّل إلى GL وراجع القيود وارحّلها وطابق البنوك وأغلق فترة GL. يمنع Oracle إغلاق فترة GL عند وجود فترات دفاتر مساعدة مفتوحة (حسب خيارات دفتر الأستاذ). يجب التحقيق في الاستثناءات والأرصدة غير المحلولة وتوثيقها.'
+  }}
+];
+
+/* ---------- QUIZ BANK ---------- */
+const QUIZ = {
+  shared: [
+    {q:{en:'Which statement best describes an ERP system?', ar:'أي عبارة تصف نظام ERP بشكل أفضل؟'}, opts:[
+      {en:'A standalone spreadsheet for journal entries', ar:'جدول بيانات مستقل لقيود اليومية'},
+      {en:'An integrated platform sharing one database across business functions', ar:'منصة متكاملة تشترك في قاعدة بيانات واحدة عبر وظائف الأعمال'},
+      {en:'A tax filing portal', ar:'بوابة تقديم الإقرارات الضريبية'},
+      {en:'A payroll calculator only', ar:'حاسبة رواتب فقط'}
+    ], a:1, why:{en:'ERP integrates finance, purchasing, sales, inventory, and other functions on a shared database.', ar:'يربط ERP المالية والمشتريات والمبيعات والمخزون ووظائف أخرى على قاعدة بيانات مشتركة.'}},
+    {q:{en:'Which accounts normally carry debit balances?', ar:'أي الحسابات عادةً ذات أرصدة مدينة؟'}, opts:[
+      {en:'Liabilities and revenue', ar:'الالتزامات والإيرادات'},
+      {en:'Assets and expenses', ar:'الأصول والمصروفات'},
+      {en:'Equity and revenue', ar:'حقوق الملكية والإيرادات'},
+      {en:'Only cash', ar:'النقدية فقط'}
+    ], a:1, why:{en:'Assets and expenses increase on the debit side; liabilities, equity, and revenue normally increase on the credit side.', ar:'تزيد الأصول والمصروفات على الجانب المدين؛ وتزيد الالتزامات وحقوق الملكية والإيرادات عادةً على الجانب الدائن.'}},
+    {q:{en:'What must always be true before a journal entry is posted?', ar:'ما الذي يجب أن يكون صحيحًا دائمًا قبل ترحيل قيد اليومية؟'}, opts:[
+      {en:'Total debits equal total credits', ar:'إجمالي المدين يساوي إجمالي الدائن'},
+      {en:'The entry has at least ten lines', ar:'يحتوي القيد على عشرة سطور على الأقل'},
+      {en:'The amount is a round number', ar:'المبلغ رقم صحيح'},
+      {en:'The entry is in USD', ar:'القيد بالدولار الأمريكي'}
+    ], a:0, why:{en:'Double-entry bookkeeping requires equal debits and credits.', ar:'تتطلب المحاسبة ذات القيد المزدوج تساوي المدين والدائن.'}},
+    {q:{en:'What is the relationship between a subledger and the GL?', ar:'ما العلاقة بين الدفتر المساعد ودفتر الأستاذ العام؟'}, opts:[
+      {en:'The subledger replaces the GL', ar:'الدفتر المساعد يحل محل دفتر الأستاذ العام'},
+      {en:'The subledger holds detail and transfers summarised entries to the GL', ar:'الدفتر المساعد يحتفظ بالتفاصيل ويحوّل قيودًا ملخصة إلى دفتر الأستاذ العام'},
+      {en:'They are unrelated', ar:'لا علاقة بينهما'},
+      {en:'The GL feeds the subledger only', ar:'دفتر الأستاذ العام يغذي الدفتر المساعد فقط'}
+    ], a:1, why:{en:'Subledgers maintain operational detail and post summarised accounting to the GL control accounts.', ar:'تحتفظ الدفاتر المساعدة بالتفاصيل التشغيلية وترحّل محاسبة ملخصة إلى حسابات المراقبة في دفتر الأستاذ العام.'}},
+    {q:{en:'A company pays a supplier 10,000 in cash. Which entry is correct?', ar:'تدفع شركة 10,000 نقدًا لمورد. أي قيد صحيح؟'}, opts:[
+      {en:'Dr Cash 10,000 / Cr AP 10,000', ar:'مدين نقدية 10,000 / دائن موردون 10,000'},
+      {en:'Dr AP 10,000 / Cr Cash 10,000', ar:'مدين موردون 10,000 / دائن نقدية 10,000'},
+      {en:'Dr Expense 10,000 / Cr Cash 10,000', ar:'مدين مصروف 10,000 / دائن نقدية 10,000'},
+      {en:'Dr AP 10,000 / Cr Revenue 10,000', ar:'مدين موردون 10,000 / دائن إيراد 10,000'}
+    ], a:1, why:{en:'Paying a supplier reduces the liability (debit AP) and reduces cash (credit cash).', ar:'سداد المورد يقلل الالتزام (مدين موردون) ويقلل النقدية (دائن نقدية).'}}
+  ],
+  sap: [
+    {q:{en:'Which SAP Fiori app is commonly used to post a general journal entry?', ar:'أي تطبيق SAP Fiori يُستخدم عادةً لترحيل قيد يومية عام؟'}, opts:[
+      {en:'Post General Journal Entries (F0718)', ar:'Post General Journal Entries (F0718)'},
+      {en:'Manage Bank Statements (F1564)', ar:'Manage Bank Statements (F1564)'},
+      {en:'Run Depreciation', ar:'Run Depreciation'},
+      {en:'Create Supplier Invoice – Advanced (MIRO)', ar:'Create Supplier Invoice – Advanced (MIRO)'}
+    ], a:0, why:{en:'F0718 is the Fiori app for posting general journal entries. F0717A is used to display, change, or reverse existing journals.', ar:'F0718 هو تطبيق Fiori لترحيل قيود اليومية العامة. ويُستخدم F0717A لعرض القيود الحالية أو تغييرها أو عكسها.'}},
+    {q:{en:'In SAP, what does a Company Code represent?', ar:'في SAP، ماذا يمثل رمز الشركة؟'}, opts:[
+      {en:'A cost centre', ar:'مركز تكلفة'},
+      {en:'An independent legal accounting entity', ar:'كيان محاسبي قانوني مستقل'},
+      {en:'A bank account', ar:'حساب بنكي'},
+      {en:'A user role', ar:'دور مستخدم'}
+    ], a:1, why:{en:'The Company Code is the smallest organisational unit for which a complete, self-contained set of accounts can be drawn up.', ar:'رمز الشركة هو أصغر وحدة تنظيمية يمكن إعداد مجموعة حسابات كاملة ومستقلة لها.'}},
+    {q:{en:'Which document type is typically used for a general journal in SAP?', ar:'أي نوع مستند يُستخدم عادةً لقيد يومية عام في SAP؟'}, opts:[
+      {en:'SA', ar:'SA'},{en:'KR', ar:'KR'},{en:'DR', ar:'DR'},{en:'RV', ar:'RV'}
+    ], a:0, why:{en:'SA is commonly used for general G/L account documents. Other types include KR (vendor invoice) and DR (customer invoice).', ar:'يُستخدم SA عادةً لمستندات حسابات الأستاذ العام. وتشمل الأنواع الأخرى KR (فاتورة مورد) وDR (فاتورة عميل).'}},
+    {q:{en:'What does MIRO support in SAP S/4HANA?', ar:'ماذا يدعم MIRO في SAP S/4HANA؟'}, opts:[
+      {en:'Bank reconciliation', ar:'تسوية البنك'},
+      {en:'Supplier invoice entry and invoice verification', ar:'إدخال فاتورة المورد والتحقق من الفاتورة'},
+      {en:'Depreciation posting', ar:'ترحيل الإهلاك'},
+      {en:'Customer receipt application', ar:'تطبيق تحصيل العميل'}
+    ], a:1, why:{en:'MIRO is the classic invoice verification transaction; the Fiori equivalent is Create Supplier Invoice – Advanced.', ar:'MIRO هو معاملة التحقق من الفاتورة الكلاسيكية؛ والمكافئ في Fiori هو Create Supplier Invoice – Advanced.'}},
+    {q:{en:'Which SAP app is used to run and post depreciation in Fiori?', ar:'أي تطبيق SAP يُستخدم لتشغيل وترحيل الإهلاك في Fiori؟'}, opts:[
+      {en:'Run Depreciation', ar:'Run Depreciation'},
+      {en:'Post Outgoing Payments', ar:'Post Outgoing Payments'},
+      {en:'Manage Journal Entries', ar:'Manage Journal Entries'},
+      {en:'Create Supplier Invoice', ar:'Create Supplier Invoice'}
+    ], a:0, why:{en:'The Run Depreciation app simulates and posts depreciation for the period.', ar:'يشغّل تطبيق Run Depreciation محاكاة الإهلاك ويرحّله للفترة.'}}
+  ],
+  oracle: [
+    {q:{en:'In Oracle Fusion General Ledger, where do you create a manual journal?', ar:'في Oracle Fusion General Ledger، أين تُنشئ قيدًا يدويًا؟'}, opts:[
+      {en:'General Accounting → Journals → Create Journal', ar:'General Accounting → Journals → Create Journal'},
+      {en:'Payables → Invoices', ar:'Payables → Invoices'},
+      {en:'Receivables → Receipts', ar:'Receivables → Receipts'},
+      {en:'Assets → Depreciation', ar:'Assets → Depreciation'}
+    ], a:0, why:{en:'Manual journals are created in the Journals work area under General Accounting.', ar:'تُنشأ القيود اليدوية في مساحة عمل Journals تحت General Accounting.'}},
+    {q:{en:'What is an Oracle Ledger?', ar:'ما هو دفتر الأستاذ في Oracle؟'}, opts:[
+      {en:'A bank statement', ar:'كشف بنك'},
+      {en:'A combination of Chart of Accounts, calendar, currency, and accounting method', ar:'مزيج من دليل الحسابات والتقويم والعملة وطريقة المحاسبة'},
+      {en:'A supplier invoice', ar:'فاتورة مورد'},
+      {en:'A user role', ar:'دور مستخدم'}
+    ], a:1, why:{en:'A ledger defines the accounting representation: COA, calendar, currency, and accounting method.', ar:'يحدد دفتر الأستاذ التمثيل المحاسبي: دليل الحسابات والتقويم والعملة وطريقة المحاسبة.'}},
+    {q:{en:'What does invoice validation do in Oracle Payables?', ar:'ماذا يفعل التحقق من الفاتورة في Oracle Payables؟'}, opts:[
+      {en:'It pays the invoice immediately', ar:'يدفع الفاتورة فورًا'},
+      {en:'It checks matching, tax, and period conditions', ar:'يتحقق من المطابقة والضريبة وشروط الفترة'},
+      {en:'It creates a customer receipt', ar:'ينشئ تحصيلًا من عميل'},
+      {en:'It closes the GL period', ar:'يغلق فترة دفتر الأستاذ العام'}
+    ], a:1, why:{en:'Validation checks invoice matches, holds, tax, and whether the accounting period is open.', ar:'يتحقق التحقق من مطابقات الفاتورة والحجوزات والضريبة وما إذا كانت فترة المحاسبة مفتوحة.'}},
+    {q:{en:'Which Oracle work area is used for bank reconciliation?', ar:'أي مساحة عمل في Oracle تُستخدم لتسوية البنك؟'}, opts:[
+      {en:'Cash Management', ar:'Cash Management'},
+      {en:'Payables', ar:'Payables'},
+      {en:'Fixed Assets', ar:'Fixed Assets'},
+      {en:'General Accounting', ar:'General Accounting'}
+    ], a:0, why:{en:'Cash Management manages bank statements and reconciliation.', ar:'تدير Cash Management كشوف البنك والتسوية.'}},
+    {q:{en:'What is the correct close sequence in Oracle Fusion?', ar:'ما تسلسل الإغلاق الصحيح في Oracle Fusion؟'}, opts:[
+      {en:'Close GL first, then subledgers', ar:'إغلاق GL أولًا ثم الدفاتر المساعدة'},
+      {en:'Close subledgers (AP, AR, FA) first, then GL', ar:'إغلاق الدفاتر المساعدة (AP، AR، FA) أولًا ثم GL'},
+      {en:'Close Assets before Payables', ar:'إغلاق Assets قبل Payables'},
+      {en:'Close Receivables before Cash Management', ar:'إغلاق Receivables قبل Cash Management'}
+    ], a:1, why:{en:'Subledgers must be accounted and transferred before the GL period is closed.', ar:'يجب محاسبة الدفاتر المساعدة وتحويلها قبل إغلاق فترة دفتر الأستاذ العام.'}}
+  ]
+};
+
+/* ---------- GLOSSARY ---------- */
+const GLOSSARY = [
+  {en:'Chart of Accounts', ar:'دليل الحسابات', def:{en:'Structured list of general ledger accounts.', ar:'قائمة منظمة لحسابات دفتر الأستاذ العام.'}, ex:{en:'1000 Cash, 2000 Accounts Payable, 4000 Sales Revenue.', ar:'1000 نقدية، 2000 حسابات دائنة، 4000 إيرادات مبيعات.'}, sap:'Defined per company code / chart of accounts.', oracle:'Defined once and assigned to a ledger.'},
+  {en:'General Ledger', ar:'دفتر الأستاذ العام', def:{en:'Central repository of posted financial transactions.', ar:'المستودع المركزي للمعاملات المالية المرحّلة.'}, ex:{en:'All subledger and manual journals post to the GL.', ar:'كل قيود الدفاتر المساعدة والقيود اليدوية تُرحّل إلى دفتر الأستاذ العام.'}, sap:'Universal Journal (ACDOCA).', oracle:'Ledger balances and GL journals.'},
+  {en:'Accounts Payable', ar:'الحسابات الدائنة', def:{en:'Amounts owed to suppliers.', ar:'المبالغ المستحقة للموردين.'}, ex:{en:'Supplier invoice 57,000: Dr Inventory 50,000, Dr VAT Input 7,000, Cr AP 57,000.', ar:'فاتورة مورد 57,000: مدين مخزون 50,000، مدين ضريبة مدخلات 7,000، دائن موردون 57,000.'}, sap:'Supplier subledger; MIRO / Fiori supplier invoice apps.', oracle:'Payables invoices and payments.'},
+  {en:'Accounts Receivable', ar:'الحسابات المدينة', def:{en:'Amounts owed by customers.', ar:'المبالغ المستحقة على العملاء.'}, ex:{en:'Customer invoice 91,200: Dr AR 91,200, Cr Revenue 80,000, Cr VAT Output 11,200.', ar:'فاتورة عميل 91,200: مدين عملاء 91,200، دائن إيراد 80,000، دائن ضريبة مخرجات 11,200.'}, sap:'Customer subledger.', oracle:'Receivables transactions and receipts.'},
+  {en:'Journal Entry', ar:'قيد اليومية', def:{en:'A balanced set of debit and credit lines.', ar:'مجموعة متوازنة من سطور المدين والدائن.'}, ex:{en:'Dr Rent 15,000 / Cr Bank 15,000.', ar:'مدين إيجار 15,000 / دائن بنك 15,000.'}, sap:'F0718 / F0717A.', oracle:'Create Journal in General Accounting.'},
+  {en:'Posting Date', ar:'تاريخ الترحيل', def:{en:'Date that determines the accounting period.', ar:'التاريخ الذي يحدد فترة المحاسبة.'}, ex:{en:'Invoice dated 28 Jan posted on 31 Jan falls in period 01/2025.', ar:'فاتورة بتاريخ 28 يناير تُرحّل في 31 يناير تقع في فترة 01/2025.'}, sap:'Posting date controls period.', oracle:'Accounting date controls period.'},
+  {en:'Document Date', ar:'تاريخ المستند', def:{en:'Date printed on the source document.', ar:'التاريخ المطبوع على المستند الأصلي.'}, ex:{en:'Supplier invoice date 5 Jan; posting date 31 Jan.', ar:'تاريخ فاتورة المورد 5 يناير؛ تاريخ الترحيل 31 يناير.'}, sap:'Document date may differ from posting date.', oracle:'Invoice date may differ from accounting date.'},
+  {en:'Reconciliation', ar:'التسوية / المطابقة', def:{en:'Comparing two sets of records to explain differences.', ar:'مقارنة مجموعتين من السجلات لتفسير الفروق.'}, ex:{en:'Bank reconciliation explains timing and fee differences.', ar:'تسوية البنك تفسر فروق التوقيت والرسوم.'}, sap:'Manage Bank Statements / Reconcile Bank Statements.', oracle:'Cash Management manual reconciliation.'},
+  {en:'Accrual', ar:'استحقاق', def:{en:'Expense recognised before payment.', ar:'مصروف يُعترف به قبل الدفع.'}, ex:{en:'Dr Utilities 6,000 / Cr Accrued Utilities 6,000.', ar:'مدين مرافق 6,000 / دائن مرافق مستحقة 6,000.'}, sap:'Accrual journals / recurring journals.', oracle:'Accrual journals and reversals.'},
+  {en:'Prepayment', ar:'مصروف مدفوع مقدمًا', def:{en:'Payment made before the expense is incurred.', ar:'دفعة تُسدد قبل استحقاق المصروف.'}, ex:{en:'Dr Prepaid Insurance 12,000 / Cr Bank 12,000; then monthly Dr Insurance Expense 1,000 / Cr Prepaid 1,000.', ar:'مدين تأمين مقدم 12,000 / دائن بنك 12,000؛ ثم شهريًا مدين مصروف تأمين 1,000 / دائن تأمين مقدم 1,000.'}, sap:'Prepayment and accrual postings.', oracle:'Prepayment invoices and multiperiod accounting.'},
+  {en:'Depreciation', ar:'الإهلاك', def:{en:'Systematic allocation of an asset cost over its useful life.', ar:'التوزيع المنهجي لتكلفة الأصل على عمره الإنتاجي.'}, ex:{en:'Dr Depreciation Expense 8,500 / Cr Accumulated Depreciation 8,500.', ar:'مدين مصروف إهلاك 8,500 / دائن مجمع إهلاك 8,500.'}, sap:'Run Depreciation (AFAB equivalent).', oracle:'Calculate Depreciation in Fixed Assets.'},
+  {en:'Trial Balance', ar:'ميزان المراجعة', def:{en:'List of account balances proving debit-credit equality.', ar:'قائمة بأرصدة الحسابات تثبت تساوي المدين والدائن.'}, ex:{en:'Total debit balances must equal total credit balances.', ar:'يجب أن يساوي إجمالي الأرصدة المدينة إجمالي الأرصدة الدائنة.'}, sap:'Fiori trial balance / universal journal.', oracle:'GL trial balance.'},
+  {en:'Subledger', ar:'دفتر الأستاذ المساعد', def:{en:'Detailed operational ledger feeding the GL.', ar:'دفتر تشغيلي تفصيلي يغذي دفتر الأستاذ العام.'}, ex:{en:'AP subledger detail must equal the AP control account.', ar:'يجب أن يساوي تفصيل دفتر AP المساعد حساب مراقبة الموردين.'}, sap:'Supplier/customer/asset subledgers.', oracle:'Payables, Receivables, Assets subledgers.'},
+  {en:'Clearing Account', ar:'حساب تسوية / مقاصة', def:{en:'Temporary account used until an item is matched or cleared.', ar:'حساب مؤقت يُستخدم حتى مطابقة البند أو تسويته.'}, ex:{en:'GR/IR clearing in SAP; cash clearing in bank reconciliation.', ar:'حساب استلام بضاعة/فاتورة في SAP؛ حساب تسوية نقدية في تسوية البنك.'}, sap:'GR/IR clearing account.', oracle:'Cash clearing and intercompany clearing.'},
+  {en:'Cost Centre', ar:'مركز التكلفة', def:{en:'Responsibility area that collects costs.', ar:'منطقة مسؤولية تجمع التكاليف.'}, ex:{en:'Finance cost centre, Warehouse cost centre.', ar:'مركز تكلفة المالية، مركز تكلفة المستودع.'}, sap:'Cost centre dimension in line items.', oracle:'Cost centre segment / distribution.'},
+  {en:'Profit Centre', ar:'مركز الربح', def:{en:'Business segment that collects revenue and costs.', ar:'قطاع تجاري يجمع الإيرادات والتكاليف.'}, ex:{en:'Retail profit centre, Wholesale profit centre.', ar:'مركز ربح التجزئة، مركز ربح الجملة.'}, sap:'Profit centre accounting.', oracle:'Profit centre segment.'},
+  {en:'Fiscal Year', ar:'السنة المالية', def:{en:'Annual reporting cycle.', ar:'دورة التقارير السنوية.'}, ex:{en:'1 January – 31 December 2025.', ar:'1 يناير – 31 ديسمبر 2025.'}, sap:'Fiscal year variant controls periods.', oracle:'Accounting calendar controls periods.'},
+  {en:'Accounting Period', ar:'فترة المحاسبة', def:{en:'Window in which transactions can be posted.', ar:'النافذة التي يمكن ترحيل المعاملات فيها.'}, ex:{en:'January 2025 period 01/2025.', ar:'فترة يناير 2025 هي 01/2025.'}, sap:'Period open/closed status.', oracle:'Open/closed accounting period.'},
+  {en:'Credit Memo', ar:'إشعار دائن', def:{en:'Document reducing an amount owed by or to a party.', ar:'مستند يقلل المبلغ المستحق على أو لطرف.'}, ex:{en:'Supplier credit memo reduces AP; customer credit memo reduces AR.', ar:'إشعار دائن من مورد يقلل الحسابات الدائنة؛ وإشعار دائن لعميل يقلل الحسابات المدينة.'}, sap:'Credit memo document type.', oracle:'Credit memo transaction in Payables/Receivables.'},
+  {en:'Invoice Matching', ar:'مطابقة الفاتورة', def:{en:'Comparing invoice to purchase order and goods receipt.', ar:'مقارنة الفاتورة بأمر الشراء واستلام البضاعة.'}, ex:{en:'Two-way: invoice vs PO. Three-way: invoice vs PO vs goods receipt.', ar:'ثنائية: الفاتورة مقابل أمر الشراء. ثلاثية: الفاتورة مقابل أمر الشراء واستلام البضاعة.'}, sap:'MIRO matching tolerances.', oracle:'Invoice validation and matching.'},
+  {en:'Three-Way Matching', ar:'المطابقة الثلاثية', def:{en:'Invoice, purchase order, and goods receipt must agree.', ar:'يجب أن تتطابق الفاتورة وأمر الشراء واستلام البضاعة.'}, ex:{en:'Quantity, price, and tax are compared before posting.', ar:'تُقارن الكمية والسعر والضريبة قبل الترحيل.'}, sap:'Invoice verification with PO and GR.', oracle:'Payables match to PO and receipt.'},
+  {en:'Period Close', ar:'إغلاق الفترة', def:{en:'Controlled process of finalising and locking a period.', ar:'عملية محكومة لإنهاء فترة المحاسبة وقفلها.'}, ex:{en:'Post accruals, run depreciation, reconcile, review, close.', ar:'ترحيل الاستحقاقات، تشغيل الإهلاك، التسوية، المراجعة، الإغلاق.'}, sap:'Advanced Financial Closing.', oracle:'Period close checklist and GL close.'}
+];
+
+/* ---------- HELPERS ---------- */
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmt(n){ return Number(n||0).toLocaleString('en-EG',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmt0(n){ return Number(n||0).toLocaleString('en-EG',{maximumFractionDigits:0}); }
+function accName(id){ const a=ACC[id]; return a ? (state.lang==='ar'?a.ar:a.en) : id; }
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.remove('hidden');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.add('hidden'), 3400);
+}
+function setLang(l){
+  state.lang=l; saveState();
+  document.documentElement.lang=l;
+  document.documentElement.dir = l==='ar'?'rtl':'ltr';
+  document.getElementById('langEn')?.classList.toggle('active',l==='en');
+  document.getElementById('langAr')?.classList.toggle('active',l==='ar');
+  document.getElementById('welEn')?.classList.toggle('active',l==='en');
+  document.getElementById('welAr')?.classList.toggle('active',l==='ar');
+  renderWelcomeTexts(); renderSidebarLabels(); render();
+}
+function selectERP(erp){
+  state.erp=erp; ensureSim(); saveState();
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  navigate('dashboard');
+}
+function switchERP(erp){
+  state.erp=erp; ensureSim(); saveState();
+  updateErpPill(); navigate(state.view==='welcome'?'dashboard':state.view);
+}
+function backToWelcome(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('welcome').classList.remove('hidden');
+  state.view='welcome'; renderWelcomeTexts();
+}
+function navigate(v){
+  if(!state.erp && v!=='welcome'){ backToWelcome(); return; }
+  state.view=v; render();
+}
+function renderSidebarLabels(){
+  const erpName = state.erp==='sap'?'SAP S/4HANA':state.erp==='oracle'?'Oracle Fusion':'—';
+  document.getElementById('sideBrand').textContent = t('dashboard')==='Dashboard'?'ERP Accounting Lab':'مختبر محاسبة ERP';
+  document.getElementById('navDashTxt').textContent=t('dashboard');
+  document.getElementById('navFundTxt').textContent=t('fundamentals');
+  document.getElementById('navErpTxt').textContent=state.erp==='oracle'?t('oracle'):t('sap');
+  document.getElementById('navSimTxt').textContent=t('simulator');
+  document.getElementById('navWorkTxt').textContent=t('workplace');
+  document.getElementById('navExamTxt').textContent=t('exam');
+  document.getElementById('navCompareTxt').textContent=t('compare');
+  document.getElementById('navGlossTxt').textContent=t('glossary');
+  document.getElementById('navVideosTxt').textContent=t('videos');
+  document.getElementById('navResetTxt').textContent=t('reset');
+  document.getElementById('navHomeTxt').textContent=t('home');
+  document.getElementById('swSap').classList.toggle('active',state.erp==='sap');
+  document.getElementById('swOracle').classList.toggle('active',state.erp==='oracle');
+  document.getElementById('swSap').textContent='SAP';
+  document.getElementById('swOracle').textContent='Oracle';
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
+  const map={dashboard:'navDash',fundamentals:'navFund',erp:'navErp',simulator:'navSim',workplace:'navWork',exam:'navExam',compare:'navCompare',glossary:'navGloss',videos:'navVideos'};
+  document.getElementById(map[state.view])?.classList.add('active');
+}
+function updateErpPill(){
+  const p=document.getElementById('topErpPill');
+  p.textContent = state.erp==='sap'?'SAP S/4HANA':state.erp==='oracle'?'Oracle Fusion':'—';
+  const sim=ensureSim();
+  document.getElementById('topPeriodPill').textContent = (t('period')||'Period')+' '+(sim?sim.period:'2025-01');
+}
+function renderWelcomeTexts(){
+  const lang=state.lang;
+  document.getElementById('welcomeTitle').textContent=t('welcomeTitle');
+  document.getElementById('welcomeSub').textContent=t('welcomeSub');
+  document.getElementById('startSapBtn').textContent=t('startSap');
+  document.getElementById('startOracleBtn').textContent=t('startOracle');
+  document.getElementById('sapCardDesc').textContent = lang==='ar'
+    ?'مجموعة محاسبة مالية مؤسسية مبنية على منصة SAP HANA وتُقدَّم عبر SAP Fiori. تجمع دفتر الأستاذ العام والحسابات الدائنة والمدينة ومحاسبة الأصول والبنك والنقدية وإغلاق الفترة في دفتر يومية موحد.'
+    :'Enterprise financial accounting suite built on SAP HANA and delivered through SAP Fiori. It combines GL, AP, AR, Asset Accounting, Bank & Cash, and closing in a universal journal.';
+  document.getElementById('oracleCardDesc').textContent = lang==='ar'
+    ?'نظام مالي سحابي يشمل دفتر الأستاذ العام والحسابات الدائنة والمدينة وإدارة النقدية والأصول الثابتة ومحاسبة الدفاتر المساعدة. يعتمد على دفاتر الأستاذ ووحدات الأعمال والتقويمات المحاسبية ومساحات العمل حسب الدور.'
+    :'Cloud financial suite with GL, Payables, Receivables, Cash Management, Fixed Assets, and Subledger Accounting. Uses ledgers, business units, accounting calendars, and role-based work areas.';
+  const sp=progressPct('sap'), op=progressPct('oracle');
+  document.getElementById('sapWelProg').style.width=sp+'%';
+  document.getElementById('oracleWelProg').style.width=op+'%';
+  document.getElementById('sapWelProgTxt').textContent=sp+'%';
+  document.getElementById('oracleWelProgTxt').textContent=op+'%';
+}
+
+/* ---------- PROGRESS ---------- */
+function progressPct(path){
+  const lessons = path==='shared'?SHARED_LESSONS:path==='sap'?SAP_MODULES:ORACLE_MODULES;
+  const done = Object.keys(state.progress[path]?.lessons||{}).filter(k=>state.progress[path].lessons[k]).length;
+  const quizIds = Object.keys(state.progress[path]?.quizzes||{});
+  const quizAvg = quizIds.length ? quizIds.reduce((s,k)=>s+(state.progress[path].quizzes[k].score||0),0)/quizIds.length : 0;
+  const lessonPart = lessons.length ? (done/lessons.length)*70 : 0;
+  const quizPart = quizIds.length ? (quizAvg/100)*30 : 0;
+  return Math.round(lessonPart+quizPart);
+}
+function markLesson(path,id){
+  state.progress[path].lessons[id]=true; saveState();
+  showToast(t('completed')); render();
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+  renderSidebarLabels(); updateErpPill();
+  const v=document.getElementById('view');
+  if(!state.erp) return;
+  const map={
+    dashboard:renderDashboard, fundamentals:renderFundamentals, erp:renderERP,
+    simulator:renderSimulator, workplace:renderWorkplace, exam:renderExam,
+    compare:renderCompare, glossary:renderGlossary, videos:renderVideos
+  };
+  v.innerHTML=(map[state.view]||renderDashboard)();
+  if(state.view==='glossary') bindGlossarySearch();
+}
+
+/* Dashboard */
+function renderDashboard(){
+  const path=state.erp;
+  const modules = path==='sap'?SAP_MODULES:ORACLE_MODULES;
+  const done = Object.keys(state.progress[path].lessons||{}).filter(k=>state.progress[path].lessons[k]).length;
+  const quizzes = Object.entries(state.progress[path].quizzes||{});
+  const avg = quizzes.length?Math.round(quizzes.reduce((s,[,v])=>s+(v.score||0),0)/quizzes.length):0;
+  const weak = quizzes.filter(([,v])=>(v.score||0)<60).map(([k])=>k);
+  const next = modules.find(m=>!state.progress[path].lessons[m.id]);
+  const sharedPct=progressPct('shared'), sapPct=progressPct('sap'), oraPct=progressPct('oracle');
+  const sim=ensureSim();
+  const tb=trialBalance(sim);
+  const totalDr=tb.reduce((s,r)=>s+r.debit,0), totalCr=tb.reduce((s,r)=>s+r.credit,0);
+  const mistakes=quizzes.filter(([,v])=>(v.score||0)<100);
+  return `
+  <div class="flex between" style="margin-bottom:1rem">
+    <div><h1>${t('welcomeBack')}, ${path==='sap'?'SAP': 'Oracle'} Learner</h1>
+      <p class="muted">${t('overall')}: ${path==='sap'?sapPct:oraPct}% · ${t('progressSaved')}</p></div>
+    <button class="btn primary" onclick="navigate('${next?'erp':'simulator'}')">${t('continue')} →</button>
+  </div>
+  <div class="grid g3">
+    <div class="card kpi"><span class="muted small">${t('overall')}</span><b>${path==='sap'?sapPct:oraPct}%</b><div class="progress"><span style="width:${path==='sap'?sapPct:oraPct}%"></span></div></div>
+    <div class="card kpi"><span class="muted small">${t('completedLessons')}</span><b>${done}/${modules.length}</b><span class="small muted">${t('shared')||'Shared'}: ${sharedPct}%</span></div>
+    <div class="card kpi"><span class="muted small">${t('quizzes')}</span><b>${avg}%</b><span class="small muted">${quizzes.length} ${t('quiz')}</span></div>
+    <div class="card kpi"><span class="muted small">${t('practical')}</span><b>${Object.keys(sim.completedSteps||{}).filter(k=>sim.completedSteps[k]).length}/6</b><span class="small muted">${t('simulator')}</span></div>
+  </div>
+  <div class="grid g2" style="margin-top:1rem">
+    <div class="card">
+      <h3>${t('recommend')}</h3>
+      ${next?`<p><b>${next.title[state.lang]}</b></p><button class="btn primary small" onclick="navigate('erp')">${t('continue')}</button>`:`<p class="muted">${t('allDone')}</p>`}
+      <hr>
+      <h4>${t('weak')}</h4>
+      ${weak.length?`<ul>${weak.map(k=>`<li>${esc(k)}</li>`).join('')}</ul>`:`<p class="muted small">${t('noMistakes')}</p>`}
+    </div>
+    <div class="card">
+      <h3>${t('trial')} — ${t('simulator')}</h3>
+      <p class="small muted">${sim.periodOpen?t('openPeriod'):t('closed')} · ${sim.transactions.length} ${t('journalLines')}</p>
+      <div class="formula">Dr ${fmt(totalDr)} · Cr ${fmt(totalCr)}</div>
+      <p class="small ${Math.abs(totalDr-totalCr)<0.005?'':'muted'}" style="color:${Math.abs(totalDr-totalCr)<0.005?'var(--ok)':'var(--bad)'}">${Math.abs(totalDr-totalCr)<0.005?'✓ Balanced':'✗ Out of balance'}</p>
+      <button class="btn small" onclick="navigate('simulator')">${t('goToSim')} →</button>
+    </div>
+  </div>
+  <div class="card" style="margin-top:1rem">
+    <h3>${t('mistakes')}</h3>
+    ${mistakes.length?mistakes.map(([id,v])=>`<div class="alert warn">${esc(id)} — ${v.score}%</div>`).join(''):`<p class="muted small">${t('noMistakes')}</p>`}
+  </div>`;
+}
+
+/* Fundamentals */
+function renderFundamentals(){
+  return `
+  <h1>${t('fundamentals')}</h1>
+  <p class="muted">Bilingual accounting foundations used by both SAP and Oracle. أكمل الدرس ثم اختبر نفسك.</p>
+  <div class="tabs"><span class="tab active">${SHARED_LESSONS.length} lessons</span><span class="tab">${QUIZ.shared.length} quiz questions</span></div>
+  ${SHARED_LESSONS.map((l,i)=>{
+    const done=!!state.progress.shared.lessons[l.id];
+    return `<div class="lesson-block">
+      <div class="flex between">
+        <h4>${i+1}. ${esc(l.title[state.lang])}</h4>
+        ${done?'<span class="badge ok">✓ '+t('completed')+'</span>':''}
+      </div>
+      <p>${esc(l.body[state.lang])}</p>
+      <div class="flex">
+        <button class="btn small" onclick="markLesson('shared','${l.id}')">${done?t('completed'):t('markDone')}</button>
+        <button class="btn small ghost" onclick="showQuiz('shared','${l.id}')">${t('quiz')}</button>
+      </div>
+      <div id="quiz-shared-${l.id}"></div>
+    </div>`;
+  }).join('')}
+  <div class="card" style="margin-top:1rem">
+    <h3>${t('quiz')} — Shared</h3>
+    ${renderQuizBlock('shared', 'shared-all', QUIZ.shared)}
+  </div>`;
+}
+
+/* ERP learning path */
+function renderERP(){
+  const path=state.erp;
+  const modules = path==='sap'?SAP_MODULES:ORACLE_MODULES;
+  const title = path==='sap'?'SAP S/4HANA Finance Learning Path':'Oracle Fusion Cloud Financials Learning Path';
+  return `
+  <h1>${title}</h1>
+  <p class="muted">${path==='sap'?'Fiori-based finance workflows and SAP terminology.':'Work-area-based financial workflows and Oracle terminology.'} ${t('progressSaved')}</p>
+  <div class="tabs">
+    <span class="tab active">${modules.length} modules</span>
+    <span class="tab">${Object.keys(state.progress[path].lessons||{}).filter(k=>state.progress[path].lessons[k]).length} completed</span>
+  </div>
+  ${modules.map((m,i)=>{
+    const done=!!state.progress[path].lessons[m.id];
+    return `<div class="card" style="margin-bottom:1rem">
+      <div class="flex between">
+        <h3>${esc(m.title[state.lang])}</h3>
+        ${done?'<span class="badge ok">✓ '+t('completed')+'</span>':''}
+      </div>
+      <p>${esc(m.body[state.lang])}</p>
+      <details class="small"><summary><b>Topics covered</b></summary><ul>${m.topics[state.lang].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details>
+      <div class="flex" style="margin-top:.6rem">
+        <button class="btn small" onclick="markLesson('${path}','${m.id}')">${done?t('completed'):t('markDone')}</button>
+        <button class="btn small ghost" onclick="showQuiz('${path}','${m.id}')">${t('quiz')}</button>
+        <button class="btn small primary" onclick="navigate('simulator')">${t('goToSim')}</button>
+      </div>
+      <div id="quiz-${path}-${m.id}"></div>
+    </div>`;
+  }).join('')}
+  <div class="card">
+    <h3>${t('quiz')} — ${path==='sap'?'SAP':'Oracle'}</h3>
+    ${renderQuizBlock(path, path+'-all', QUIZ[path])}
+  </div>`;
+}
+
+/* Quiz rendering */
+function renderQuizBlock(path, id, questions){
+  return `<div id="quizbox-${id}" data-path="${path}" data-qid="${id}">
+    ${questions.map((q,qi)=>`<div class="quiz-q" data-qi="${qi}" style="margin:.8rem 0">
+      <p><b>${qi+1}. ${esc(q.q[state.lang])}</b></p>
+      ${q.opts.map((o,oi)=>`<button class="quiz-option" onclick="answerQuiz('${path}','${id}',${qi},${oi},this)">${String.fromCharCode(65+oi)}. ${esc(o[state.lang])}</button>`).join('')}
+      <div class="quiz-feedback small"></div>
+    </div>`).join('')}
+  </div>`;
+}
+function answerQuiz(path, id, qi, oi, btn){
+  const questions = id==='shared-all'?QUIZ.shared : id.endsWith('-all')?QUIZ[path] : (QUIZ[path]||QUIZ.shared);
+  const q=questions[qi];
+  const box=btn.closest('.quizbox')||document.getElementById('quizbox-'+id);
+  const qDiv=btn.closest('.quiz-q');
+  if(qDiv.dataset.answered) return;
+  qDiv.dataset.answered='1';
+  const buttons=qDiv.querySelectorAll('.quiz-option');
+  buttons.forEach((b,i)=>{ b.disabled=true; if(i===q.a) b.classList.add('correct'); });
+  if(oi!==q.a){ btn.classList.add('wrong'); }
+  const fb=qDiv.querySelector('.quiz-feedback');
+  fb.innerHTML=`<div class="alert ${oi===q.a?'ok':'bad'}"><b>${oi===q.a?t('correct'):t('wrong')}</b> — ${esc(q.why[state.lang])}</div>`;
+  // score
+  const container=qDiv.closest('[id^="quizbox-"]');
+  const all=container.querySelectorAll('.quiz-q');
+  const answered=container.querySelectorAll('.quiz-q[data-answered]');
+  if(answered.length===all.length){
+    let correct=0;
+    all.forEach((el,i)=>{ const sel=el.querySelector('.quiz-option.correct'); if(sel) correct++; });
+    const score=Math.round(correct/all.length*100);
+    state.progress[path].quizzes[id]={score, total:all.length, correct};
+    saveState();
+    showToast(`${t('quiz')}: ${score}%`);
+  }
+}
+function showQuiz(path, lessonId){
+  const qs=path==='shared'?QUIZ.shared:QUIZ[path];
+  const el=document.getElementById(`quiz-${path}-${lessonId}`);
+  if(el) el.innerHTML=renderQuizBlock(path, lessonId+'-q', qs.slice(0,3));
+}
+
+/* Simulator */
+function renderSimulator(){
+  const sim=ensureSim();
+  const erp=state.erp;
+  return `
+  <h1>${t('simulator')} — ${erp==='sap'?'SAP S/4HANA':'Oracle Fusion Cloud'}</h1>
+  <p class="muted">Nile Trading Company · Educational simulation. ${sim.periodOpen?t('openPeriod'):t('closed')}. All posted transactions update the trial balance, balance sheet, income statement, and aging reports.</p>
+  <div class="sim-shell">
+    <div class="sim-top ${erp}">
+      <div><b>${erp==='sap'?'SAP Fiori Launchpad — Finance':'Oracle Fusion — Financials Work Area'}</b></div>
+      <div class="flex"><span class="badge">${erp==='sap'?'Company Code 1000':'Ledger: Nile Ledger'}</span><span class="badge">${sim.period}</span><span class="badge ${sim.periodOpen?'ok':'bad'}">${sim.periodOpen?t('open'):t('locked')}</span></div>
+    </div>
+    <div class="sim-body">
+      <div class="tabs">
+        <button class="tab active" onclick="simTab('gl')">${t('journalEntry')}</button>
+        <button class="tab" onclick="simTab('ap')">${t('supplierInvoice')} / ${t('supplierPayment')}</button>
+        <button class="tab" onclick="simTab('ar')">${t('customerInvoice')} / ${t('customerReceipt')}</button>
+        <button class="tab" onclick="simTab('bank')">${t('bankRec')}</button>
+        <button class="tab" onclick="simTab('assets')">${t('depreciation')}</button>
+        <button class="tab" onclick="simTab('reports')">${t('reports')}</button>
+        <button class="tab" onclick="simTab('close')">${t('monthEnd')}</button>
+      </div>
+      <div id="simPanel">${renderSimGL()}</div>
+      <hr>
+      <div class="flex">
+        <button class="btn small danger" onclick="resetSim()">${t('resetSim')}</button>
+        <button class="btn small" onclick="seedDemo()">${t('seed')}</button>
+        <button class="btn small ghost" onclick="navigate('dashboard')">${t('dashboard')}</button>
+      </div>
+      <p class="tiny muted" style="margin-top:.5rem">${erp==='sap'?'Simulated Fiori-style forms. Not official SAP screens.':'Simulated Oracle-style work areas. Not official Oracle screens.'}</p>
+    </div>
+  </div>`;
+}
+function simTab(tab){
+  document.querySelectorAll('#simPanel').forEach(()=>{});
+  document.querySelectorAll('.tabs .tab').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  const map={gl:renderSimGL,ap:renderSimAP,ar:renderSimAR,bank:renderSimBank,assets:renderSimAssets,reports:renderSimReports,close:renderSimClose};
+  document.getElementById('simPanel').innerHTML=(map[tab]||renderSimGL)();
+  if(tab==='reports') bindReportTabs();
+}
+function glExercise(){
+  const path=state.erp==='sap'
+    ? 'SAP: Fiori Launchpad → General Ledger → Post General Journal Entries (F0718). Enter company code 1000, journal entry date, posting date, period, document type SA, currency EGP. Add G/L account lines. Validate and post.'
+    : 'Oracle: Home → General Accounting → Journals → Create Journal. Enter batch, description, accounting period, ledger, category. Add account combinations and amounts. Validate and post.';
+  return `<div class="alert warn small"><b>${t('navigationPath')}:</b> ${path}</div>
+  <div class="small"><b>${t('accountingTreatment')}:</b> Debits must equal credits. Each line affects a G/L account. The posting date determines the accounting period. <b>${t('requiredDocs')}:</b> approved journal request, supporting calculation, or adjustment memo.</div>`;
+}
+function renderSimGL(){
+  const sim=ensureSim();
+  const opts=ACCOUNTS.map(a=>`<option value="${a.id}">${a.id} — ${esc(state.lang==='ar'?a.ar:a.en)}</option>`).join('');
+  return `
+  <h3>${t('journalEntry')} — ${t('exercise')} 1</h3>
+  ${glExercise()}
+  <div class="grid g3">
+    <div><label>${t('date')}</label><input type="date" id="glDate" value="2025-01-31"></div>
+    <div><label>${t('reference')}</label><input type="text" id="glRef" placeholder="ADJ-001"></div>
+    <div><label>${t('description')}</label><input type="text" id="glDesc" placeholder="Month-end adjustment"></div>
+  </div>
+  <div id="glLines">
+    ${[0,1].map(i=>`<div class="journal-lines">
+      <div><label>${t('account')}</label><select class="glAcc">${opts}</select></div>
+      <div><label>${t('debit')}</label><input type="number" class="glDr" min="0" step="0.01" value="${i===0?'0':'0'}"></div>
+      <div><label>${t('credit')}</label><input type="number" class="glCr" min="0" step="0.01" value="${i===1?'0':'0'}"></div>
+      <div><label>${t('description')}</label><input type="text" class="glLineDesc" placeholder="Line description"></div>
+      <div></div>
+    </div>`).join('')}
+  </div>
+  <div class="flex" style="margin:.6rem 0">
+    <button class="btn small" onclick="addGlLine()">+ ${t('addLine')}</button>
+    <button class="btn primary small" onclick="submitGL()">${t('post')}</button>
+    <button class="btn small ghost" onclick="simTab('gl')">${t('cancel')}</button>
+  </div>
+  <div id="glMsg"></div>
+  <h4>${t('journalLines')} — ${sim.transactions.length}</h4>
+  ${renderJournalTable(sim)}`;
+}
+function addGlLine(){
+  const opts=ACCOUNTS.map(a=>`<option value="${a.id}">${a.id} — ${esc(state.lang==='ar'?a.ar:a.en)}</option>`).join('');
+  const div=document.createElement('div');
+  div.className='journal-lines';
+  div.innerHTML=`<div><label>${t('account')}</label><select class="glAcc">${opts}</select></div>
+    <div><label>${t('debit')}</label><input type="number" class="glDr" min="0" step="0.01" value="0"></div>
+    <div><label>${t('credit')}</label><input type="number" class="glCr" min="0" step="0.01" value="0"></div>
+    <div><label>${t('description')}</label><input type="text" class="glLineDesc"></div>
+    <div><button class="btn small danger" onclick="this.closest('.journal-lines').remove()">✕</button></div>`;
+  document.getElementById('glLines').appendChild(div);
+}
+function submitGL(){
+  const sim=ensureSim();
+  const lines=[...document.querySelectorAll('#glLines .journal-lines')].map(row=>({
+    account:row.querySelector('.glAcc').value,
+    debit:Number(row.querySelector('.glDr').value)||0,
+    credit:Number(row.querySelector('.glCr').value)||0,
+    description:row.querySelector('.glLineDesc').value
+  })).filter(l=>l.debit>0||l.credit>0);
+  const v=validateJournal(lines);
+  const msg=document.getElementById('glMsg');
+  if(!v.ok){ msg.innerHTML=`<div class="alert bad">${esc(v.msg)}</div>`; return; }
+  const res=postJournal(sim, lines, {date:document.getElementById('glDate').value, reference:document.getElementById('glRef').value, description:document.getElementById('glDesc').value, type:state.erp==='sap'?'SA':'Manual'});
+  if(!res.ok){ msg.innerHTML=`<div class="alert bad">${esc(res.msg)}</div>`; return; }
+  sim.completedSteps.gl=true; saveState();
+  msg.innerHTML=`<div class="alert ok">${t('posted')} ${res.journal.no} · Dr ${fmt(v.dr)} = Cr ${fmt(v.cr)}</div>`;
+  document.getElementById('simPanel').innerHTML=renderSimGL();
+}
+function renderJournalTable(sim){
+  if(!sim.transactions.length) return `<p class="muted small">${t('noData')}</p>`;
+  return `<div style="overflow:auto"><table><thead><tr><th>No.</th><th>${t('date')}</th><th>${t('description')}</th><th>${t('account')}</th><th class="num">${t('debit')}</th><th class="num">${t('credit')}</th></tr></thead><tbody>
+  ${sim.transactions.map(j=>j.lines.map((l,i)=>`<tr>${i===0?`<td rowspan="${j.lines.length}">${j.no}</td><td rowspan="${j.lines.length}">${j.date}</td><td rowspan="${j.lines.length}">${esc(j.description)}</td>`:''}<td>${esc(accName(l.account))}</td><td class="num">${l.debit?fmt(l.debit):''}</td><td class="num">${l.credit?fmt(l.credit):''}</td></tr>`).join('')).join('')}
+  </tbody></table></div>`;
+}
+
+function renderSimAP(){
+  const sim=ensureSim();
+  const sup=SUPPLIERS.map(s=>`<option value="${s.id}">${esc(state.lang==='ar'?s.ar:s.en)}</option>`).join('');
+  const expOpts=ACCOUNTS.filter(a=>['expense','asset'].includes(a.type)).map(a=>`<option value="${a.id}">${a.id} — ${esc(state.lang==='ar'?a.ar:a.en)}</option>`).join('');
+  const apBal=SUPPLIERS.map(s=>{
+    let bal=0;
+    for(const tx of sim.transactions){ for(const l of tx.lines){
+      if(tx.party===s.id && l.account==='2000'){ bal += l.credit-l.debit; }
+    }}
+    return {s,bal};
+  });
+  const nav=state.erp==='sap'
+    ?'SAP: Create Supplier Invoice – Advanced (MIRO) → enter company code, supplier, invoice date, posting date, reference (supplier invoice no.), amount, tax code, PO reference if available. Check items, simulate, then post. Payment: Post Outgoing Payments (F1612).'
+    :'Oracle: Payables → Invoices → Create Invoice. Enter supplier, invoice number, date, amount, tax, distribution account. Validate the invoice. Payment: Payables → Payments → Create Payment.';
+  return `
+  <h3>${t('supplierInvoice')} — ${t('exercise')} 2</h3>
+  <div class="alert warn small"><b>${t('navigationPath')}:</b> ${nav}</div>
+  <div class="small"><b>${t('accountingTreatment')}:</b> Dr Inventory/Expense + Dr VAT Input / Cr Accounts Payable. <b>${t('requiredDocs')}:</b> supplier invoice, purchase order, goods receipt, tax invoice.</div>
+  <div class="grid g3">
+    <div><label>${t('supplier')}</label><select id="apSup">${sup}</select></div>
+    <div><label>${t('invoiceNo')}</label><input id="apInv" placeholder="SUP-2025-001"></div>
+    <div><label>${t('date')}</label><input type="date" id="apDate" value="2025-01-31"></div>
+    <div><label>${t('amount')} (${t('vat')} excluded)</label><input type="number" id="apAmt" value="50000" step="0.01"></div>
+    <div><label>${t('vat')}</label><input type="number" id="apVat" value="7000" step="0.01"></div>
+    <div><label>Expense / Inventory account</label><select id="apAcc">${expOpts}</select></div>
+  </div>
+  <div class="flex" style="margin:.6rem 0"><button class="btn primary small" onclick="submitAP()">${t('post')}</button><button class="btn small ghost" onclick="simTab('ap')">${t('cancel')}</button></div>
+  <div id="apMsg"></div>
+  <h4>${t('supplierPayment')} — ${t('exercise')} 3</h4>
+  <div class="grid g3">
+    <div><label>${t('supplier')}</label><select id="paySup">${sup}</select></div>
+    <div><label>${t('amount')}</label><input type="number" id="payAmt" value="30000" step="0.01"></div>
+    <div><label>${t('date')}</label><input type="date" id="payDate" value="2025-01-20"></div>
+  </div>
+  <div class="flex" style="margin:.6rem 0"><button class="btn primary small" onclick="submitPay()">${t('post')} ${t('supplierPayment')}</button></div>
+  <div id="payMsg"></div>
+  <h4>AP balances</h4>
+  <table><thead><tr><th>${t('supplier')}</th><th class="num">${t('balance')}</th></tr></thead><tbody>
+  ${apBal.map(r=>`<tr><td>${esc(state.lang==='ar'?r.s.ar:r.s.en)}</td><td class="num">${fmt(r.bal)}</td></tr>`).join('')}
+  <tr class="total"><td>${t('total')}</td><td class="num">${fmt(apBal.reduce((s,r)=>s+r.bal,0))}</td></tr>
+  </tbody></table>`;
+}
+function submitAP(){
+  const sim=ensureSim();
+  const sup=document.getElementById('apSup').value;
+  const inv=document.getElementById('apInv').value.trim();
+  const amt=Number(document.getElementById('apAmt').value)||0;
+  const vat=Number(document.getElementById('apVat').value)||0;
+  const acc=document.getElementById('apAcc').value;
+  const msg=document.getElementById('apMsg');
+  if(!inv){ msg.innerHTML='<div class="alert bad">Invoice number is required.</div>'; return; }
+  if(sim.transactions.some(tx=>tx.party===sup && tx.invoiceNo===inv)){ msg.innerHTML=`<div class="alert bad">${t('duplicateInvoice')}</div>`; return; }
+  const lines=[
+    {account:acc, debit:amt, credit:0, description:'Supplier invoice — goods/services'},
+    {account:'1050', debit:vat, credit:0, description:'VAT input'},
+    {account:'2000', debit:0, credit:amt+vat, description:'Supplier liability'}
+  ];
+  const res=postJournal(sim, lines, {date:document.getElementById('apDate').value, description:'Supplier invoice '+inv, reference:inv, type:'KR', party:sup, invoiceNo:inv});
+  if(!res.ok){ msg.innerHTML=`<div class="alert bad">${esc(res.msg)}</div>`; return; }
+  sim.completedSteps.ap=true; saveState();
+  msg.innerHTML=`<div class="alert ok">${t('posted')} Dr ${fmt(amt+vat)} = Cr ${fmt(amt+vat)}</div>`;
+  document.getElementById('simPanel').innerHTML=renderSimAP();
+}
+function submitPay(){
+  const sim=ensureSim();
+  const sup=document.getElementById('paySup').value;
+  const amt=Number(document.getElementById('payAmt').value)||0;
+  const msg=document.getElementById('payMsg');
+  let bal=0;
+  for(const tx of sim.transactions){ for(const l of tx.lines){ if(tx.party===sup && l.account==='2000') bal += l.credit-l.debit; }}
+  if(amt>bal+0.005){ msg.innerHTML=`<div class="alert bad">${t('overpay')} (${fmt(bal)})</div>`; return; }
+  const lines=[{account:'2000',debit:amt,credit:0,description:'Supplier payment'},{account:'1010',debit:0,credit:amt,description:'Bank payment'}];
+  const res=postJournal(sim, lines, {date:document.getElementById('payDate').value, description:'Supplier payment', type:'KZ', party:sup});
+  if(!res.ok){ msg.innerHTML=`<div class="alert bad">${esc(res.msg)}</div>`; return; }
+  sim.completedSteps.pay=true; saveState();
+  msg.innerHTML=`<div class="alert ok">${t('posted')} Dr AP ${fmt(amt)} / Cr Bank ${fmt(amt)}</div>`;
+  document.getElementById('simPanel').innerHTML=renderSimAP();
+}
+
+function renderSimAR(){
+  const sim=ensureSim();
+  const cus=CUSTOMERS.map(c=>`<option value="${c.id}">${esc(state.lang==='ar'?c.ar:c.en)}</option>`).join('');
+  const revOpts=ACCOUNTS.filter(a=>a.type==='revenue').map(a=>`<option value="${a.id}">${a.id} — ${esc(state.lang==='ar'?a.ar:a.en)}</option>`).join('');
+  const nav=state.erp==='sap'
+    ?'SAP: Customer invoice creation (sales billing or financial accounting), then incoming payments and clearing. Use Fiori apps for receivables and manage customer line items.'
+    :'Oracle: Receivables → Transactions → Create Transaction (invoice). Receipts → Create Receipt and apply to the invoice.';
+  return `
+  <h3>${t('customerInvoice')} — ${t('exercise')} 4</h3>
+  <div class="alert warn small"><b>${t('navigationPath')}:</b> ${nav}</div>
+  <div class="small"><b>${t('accountingTreatment')}:</b> Dr Accounts Receivable / Cr Revenue + Cr VAT Output. COGS entry: Dr COGS / Cr Inventory. <b>${t('requiredDocs')}:</b> sales order, delivery note, customer purchase order, tax invoice.</div>
+  <div class="grid g3">
+    <div><label>${t('customer')}</label><select id="arCus">${cus}</select></div>
+    <div><label>${t('invoiceNo')}</label><input id="arInv" placeholder="CUS-2025-001"></div>
+    <div><label>${t('date')}</label><input type="date" id="arDate" value="2025-01-31"></div>
+    <div><label>${t('amount')} (excl. VAT)</label><input type="number" id="arAmt" value="80000" step="0.01"></div>
+    <div><label>${t('vat')}</label><input type="number" id="arVat" value="11200" step="0.01"></div>
+    <div><label>COGS amount</label><input type="number" id="arCogs" value="48000" step="0.01"></div>
+  </div>
+  <div class="flex" style="margin:.6rem 0"><button class="btn primary small" onclick="submitAR()">${t('post')}</button><button class="btn small ghost" onclick="simTab('ar')">${t('cancel')}</button></div>
+  <div id="arMsg"></div>
+  <h4>${t('customerReceipt')} — ${t('exercise')} 5</h4>
+  <div class="grid g3">
+    <div><label>${t('customer')}</label><select id="recCus">${cus}</select></div>
+    <div><label>${t('amount')}</label><input type="number" id="recAmt" value="50000" step="0.01"></div>
+    <div><label>${t('date')}</label><input type="date" id="recDate" value="2025-01-15"></div>
+  </div>
+  <div class="flex" style="margin:.6rem 0"><button class="btn primary small" onclick="submitReceipt()">${t('post')} ${t('customerReceipt')}</button></div>
+  <div id="recMsg"></div>
+  <h4>AR balances</h4>
+  <table><thead><tr><th>${t('customer')}</th><th class="num">${t('balance')}</th></tr></thead><tbody>
+  ${CUSTOMERS.map(c=>{let bal=0;for(const tx of sim.transactions){for(const l of tx.lines){if(tx.party===c.id&&l.account==='1020')bal+=l.debit-l.credit;}}return `<tr><td>${esc(state.lang==='ar'?c.ar:c.en)}</td><td class="num">${fmt(bal)}</td></tr>`;}).join('')}
+  </tbody></table>`;
+}
+function submitAR(){
+  const sim=ensureSim();
+  const cus=document.getElementById('arCus').value;
+  const inv=document.getElementById('arInv').value.trim();
+  const amt=Number(document.getElementById('arAmt').value)||0;
+  const vat=Number(document.getElementById('arVat').value)||0;
+  const cogs=Number(document.getElementById('arCogs').value)||0;
+  const msg=document.getElementById('arMsg');
+  if(!inv){ msg.innerHTML='<div class="alert bad">Invoice number is required.</div>'; return; }
+  const lines=[
+    {account:'1020',debit:amt+vat,credit:0,description:'Customer receivable'},
+    {account:'4000',debit:0,credit:amt,description:'Sales revenue'},
+    {account:'2010',debit:0,credit:vat,description:'VAT output'}
+  ];
+  if(cogs>0){ lines.push({account:'5000',debit:cogs,credit:0,description:'COGS'}); lines.push({account:'1030',debit:0,credit:cogs,description:'Inventory relief'}); }
+  const res=postJournal(sim, lines, {date:document.getElementById('arDate').value, description:'Customer invoice '+inv, reference:inv, type:'DR', party:cus, invoiceNo:inv});
+  if(!res.ok){ msg.innerHTML=`<div class="alert bad">${esc(res.msg)}</div>`; return; }
+  sim.completedSteps.ar=true; saveState();
+  msg.innerHTML=`<div class="alert ok">${t('posted')}</div>`;
+  document.getElementById('simPanel').innerHTML=renderSimAR();
+}
+function submitReceipt(){
+  const sim=ensureSim();
+  const cus=document.getElementById('recCus').value;
+  const amt=Number(document.getElementById('recAmt').value)||0;
+  const msg=document.getElementById('recMsg');
+  let bal=0;
+  for(const tx of sim.transactions){for(const l of tx.lines){if(tx.party===cus&&l.account==='1020')bal+=l.debit-l.credit;}}
+  if(amt>bal+0.005){ msg.innerHTML=`<div class="alert bad">${t('overReceipt')} (${fmt(bal)})</div>`; return; }
+  const lines=[{account:'1010',debit:amt,credit:0,description:'Customer receipt'},{account:'1020',debit:0,credit:amt,description:'AR clearance'}];
+  const res=postJournal(sim, lines, {date:document.getElementById('recDate').value, description:'Customer receipt', type:'DZ', party:cus});
+  if(!res.ok){ msg.innerHTML=`<div class="alert bad">${esc(res.msg)}</div>`; return; }
+  sim.completedSteps.receipt=true; saveState();
+  msg.innerHTML=`<div class="alert ok">${t('posted')} Dr Bank ${fmt(amt)} / Cr AR ${fmt(amt)}</div>`;
+  document.getElementById('simPanel').innerHTML=renderSimAR();
+}
+
+function renderSimBank(){
+  const sim=ensureSim();
+  const book=getBalance('1010',sim);
+  const statement=sim.reconciled?book:383850;
+  const diff=book-statement;
+  const nav=state.erp==='sap'
+    ?'SAP: Manage Bank Statements (F1564) → import/enter statement → match lines → post adjustments → reconcile.'
+    :'Oracle: Cash Management → Bank Statements and Reconciliation → Manual Reconciliation → match statement lines to system transactions → review exceptions → reconcile.';
+  return `
+  <h3>${t('bankRec')} — ${t('exercise')} 6</h3>
+  <div class="alert warn small"><b>${t('navigationPath')}:</b> ${nav}</div>
+  <div class="grid g3">
+    <div class="card kpi"><span class="muted small">${t('bookBalance')}</span><b>${fmt(book)}</b></div>
+    <div class="card kpi"><span class="muted small">${t('statementBalance')}</span><b>${fmt(statement)}</b></div>
+    <div class="card kpi"><span class="muted small">${t('difference')}</span><b style="color:${Math.abs(diff)<0.005?'var(--ok)':'var(--bad)'}">${fmt(diff)}</b></div>
+  </div>
+  <div class="small" style="margin:.6rem 0"><b>${t('accountingTreatment')}:</b> Bank charges: Dr Bank Charges / Cr Bank. Deposits in transit and outstanding cheques are timing differences and do not require a journal entry. <b>${t('requiredDocs')}:</b> bank statement, cash book, payment advices.</div>
+  ${sim.reconciled?'<div class="alert ok">'+t('reconciled')+' ✓</div>':`<button class="btn primary small" onclick="reconcileBank()">${t('adjust')} (${fmt(Math.abs(diff))})</button>`}
+  <h4>Statement lines (simulated)</h4>
+  <table><thead><tr><th>${t('date')}</th><th>${t('description')}</th><th class="num">${t('debit')}</th><th class="num">${t('credit')}</th></tr></thead><tbody>
+  <tr><td>2025-01-02</td><td>Opening balance</td><td class="num">500,000.00</td><td></td></tr>
+  <tr><td>2025-01-15</td><td>Customer receipt — Alex Retail</td><td class="num">50,000.00</td><td></td></tr>
+  <tr><td>2025-01-20</td><td>Supplier payment — Cairo Suppliers</td><td></td><td class="num">30,000.00</td></tr>
+  <tr><td>2025-01-01</td><td>Rent payment</td><td></td><td class="num">15,000.00</td></tr>
+  <tr><td>2025-01-25</td><td>Salaries</td><td></td><td class="num">40,000.00</td></tr>
+  <tr><td>2025-01-12</td><td>Office equipment</td><td></td><td class="num">68,400.00</td></tr>
+  <tr><td>2025-01-01</td><td>Prepaid insurance</td><td></td><td class="num">12,000.00</td></tr>
+  <tr><td>2025-01-31</td><td>Bank service charge (statement)</td><td></td><td class="num">750.00</td></tr>
+  <tr class="total"><td colspan="3">Closing statement balance</td><td class="num">383,850.00</td></tr>
+  </tbody></table>`;
+}
+function reconcileBank(){
+  const sim=ensureSim();
+  const book=getBalance('1010',sim);
+  const diff=book-383850;
+  if(Math.abs(diff)<0.005){ sim.reconciled=true; saveState(); document.getElementById('simPanel').innerHTML=renderSimBank(); return; }
+  const lines=[{account:'5500',debit:Math.abs(diff),credit:0,description:'Bank charge adjustment'},{account:'1010',debit:0,credit:Math.abs(diff),description:'Bank charge adjustment'}];
+  const res=postJournal(sim, lines, {date:'2025-01-31', description:'Bank reconciliation adjustment', type:'SA'});
+  if(!res.ok){ showToast(res.msg); return; }
+  sim.reconciled=true; sim.completedSteps.bank=true; saveState();
+  showToast(t('bankAdjusted'));
+  document.getElementById('simPanel').innerHTML=renderSimBank();
+}
+
+function renderSimAssets(){
+  const sim=ensureSim();
+  const total=ASSETS.reduce((s,a)=>s+a.monthly,0);
+  return `
+  <h3>${t('depreciation')} — ${t('exercise')} 7</h3>
+  <div class="alert warn small"><b>${t('navigationPath')}:</b> ${state.erp==='sap'?'SAP: Run Depreciation Fiori app → simulate → post. The system posts to the universal journal.':'Oracle: Assets → Calculate Depreciation → Create Accounting → transfer to GL.'}</div>
+  <div class="small"><b>${t('accountingTreatment')}:</b> Dr Depreciation Expense / Cr Accumulated Depreciation. <b>${t('requiredDocs')}:</b> asset register, depreciation policy, capitalisation documents.</div>
+  <table><thead><tr><th>Asset</th><th class="num">Cost</th><th class="num">Accum. dep.</th><th class="num">Monthly dep.</th></tr></thead><tbody>
+  ${ASSETS.map(a=>`<tr><td>${esc(state.lang==='ar'?a.ar:a.en)}</td><td class="num">${fmt(a.cost)}</td><td class="num">${fmt(a.accDep)}</td><td class="num">${fmt(a.monthly)}</td></tr>`).join('')}
+  <tr class="total"><td>${t('total')}</td><td></td><td></td><td class="num">${fmt(total)}</td></tr>
+  </tbody></table>
+  <div style="margin:.7rem 0">
+    ${sim.depreciationPosted?'<div class="alert ok">'+t('depPosted')+'</div>':`<button class="btn primary small" onclick="runDep()">${t('runDep')}</button>`}
+  </div>
+  <p class="small muted">${t('commonErrors')}: posting depreciation twice in the same period; using the wrong useful life; forgetting to capitalise an asset before running depreciation.</p>`;
+}
+function runDep(){
+  const sim=ensureSim();
+  if(sim.depreciationPosted){ showToast(t('alreadyDep')); return; }
+  const total=ASSETS.reduce((s,a)=>s+a.monthly,0);
+  const lines=[
+    {account:'5400',debit:total,credit:0,description:'Monthly depreciation'},
+    {account:'1110',debit:0,credit:ASSETS.filter(a=>a.id!=='FA002').reduce((s,a)=>s+a.monthly,0),description:'Accumulated depreciation — office equipment'},
+    {account:'1130',debit:0,credit:ASSETS.filter(a=>a.id==='FA002').reduce((s,a)=>s+a.monthly,0),description:'Accumulated depreciation — vehicles'}
+  ];
+  const res=postJournal(sim,lines,{date:'2025-01-31',description:'Depreciation run 01/2025',type:'AF'});
+  if(!res.ok){ showToast(res.msg); return; }
+  sim.depreciationPosted=true; sim.completedSteps.dep=true; saveState();
+  showToast(t('depPosted'));
+  document.getElementById('simPanel').innerHTML=renderSimAssets();
+}
+
+function renderSimReports(){
+  const sim=ensureSim();
+  const tb=trialBalance(sim);
+  const totalDr=tb.reduce((s,r)=>s+r.debit,0), totalCr=tb.reduce((s,r)=>s+r.credit,0);
+  const net=netIncome(sim);
+  const assets=tb.filter(r=>r.account.type==='asset').reduce((s,r)=>s+(r.account.normal==='debit'?r.debit-r.credit:r.credit-r.debit),0);
+  const liabilities=tb.filter(r=>r.account.type==='liability').reduce((s,r)=>s+(r.account.normal==='credit'?r.credit-r.debit:r.debit-r.credit),0);
+  const equity=tb.filter(r=>r.account.type==='equity').reduce((s,r)=>s+(r.account.normal==='credit'?r.credit-r.debit:r.debit-r.credit),0);
+  const revenue=tb.filter(r=>r.account.type==='revenue').reduce((s,r)=>s+(r.account.normal==='credit'?r.credit-r.debit:r.debit-r.credit),0);
+  const expenses=tb.filter(r=>r.account.type==='expense').reduce((s,r)=>s+(r.account.normal==='debit'?r.debit-r.credit:r.credit-r.debit),0);
+  return `
+  <h3>${t('reports')} — ${t('exercise')} 8 &amp; 9</h3>
+  <div class="tabs" id="reportTabs">
+    <button class="tab active" onclick="showReport('tb')">${t('trial')}</button>
+    <button class="tab" onclick="showReport('bs')">${t('balanceSheet')}</button>
+    <button class="tab" onclick="showReport('is')">${t('income')}</button>
+    <button class="tab" onclick="showReport('aging')">AP / AR Aging</button>
+  </div>
+  <div id="reportBody">${reportTB(tb,totalDr,totalCr)}</div>
+  <hr>
+  <p class="small ${Math.abs(totalDr-totalCr)<0.005?'':'muted'}">${Math.abs(totalDr-totalCr)<0.005?'✓ '+t('allBalanced'):'✗ '+t('notBalanced')}</p>
+  <button class="btn small" onclick="simTab('reports')">↻ ${t('reports')}</button>`;
+}
+function showReport(kind){
+  const sim=ensureSim();
+  const tb=trialBalance(sim);
+  const totalDr=tb.reduce((s,r)=>s+r.debit,0), totalCr=tb.reduce((s,r)=>s+r.credit,0);
+  const body=document.getElementById('reportBody');
+  document.querySelectorAll('#reportTabs .tab').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  if(kind==='tb') body.innerHTML=reportTB(tb,totalDr,totalCr);
+  if(kind==='bs') body.innerHTML=reportBS(tb);
+  if(kind==='is') body.innerHTML=reportIS(tb);
+  if(kind==='aging') body.innerHTML=reportAging(sim);
+}
+function reportTB(tb,dr,cr){
+  return `<table><thead><tr><th>${t('account')}</th><th class="num">${t('debit')}</th><th class="num">${t('credit')}</th></tr></thead><tbody>
+  ${tb.map(r=>`<tr><td>${r.account.id} — ${esc(state.lang==='ar'?r.account.ar:r.account.en)}</td><td class="num">${r.debit?fmt(r.debit):''}</td><td class="num">${r.credit?fmt(r.credit):''}</td></tr>`).join('')}
+  <tr class="total"><td>${t('total')}</td><td class="num">${fmt(dr)}</td><td class="num">${fmt(cr)}</td></tr>
+  </tbody></table>`;
+}
+function reportBS(tb){
+  const group=(type)=>tb.filter(r=>r.account.type===type).map(r=>{
+    const val=r.account.normal==='debit'?r.debit-r.credit:r.credit-r.debit;
+    return `<tr><td>${r.account.id} — ${esc(state.lang==='ar'?r.account.ar:r.account.en)}</td><td class="num">${fmt(val)}</td></tr>`;
+  }).join('');
+  const assetTotal=tb.filter(r=>r.account.type==='asset').reduce((s,r)=>s+(r.account.normal==='debit'?r.debit-r.credit:r.credit-r.debit),0);
+  const liabTotal=tb.filter(r=>r.account.type==='liability').reduce((s,r)=>s+(r.account.normal==='credit'?r.credit-r.debit:r.debit-r.credit),0);
+  const eqTotal=tb.filter(r=>r.account.type==='equity').reduce((s,r)=>s+(r.account.normal==='credit'?r.credit-r.debit:r.debit-r.credit),0);
+  const net=netIncome(ensureSim());
+  return `<table><thead><tr><th>${t('balanceSheet')}</th><th class="num">EGP</th></tr></thead><tbody>
+  <tr><td colspan="2"><b>Assets</b></td></tr>${group('asset')}<tr class="total"><td>Total assets</td><td class="num">${fmt(assetTotal)}</td></tr>
+  <tr><td colspan="2"><b>Liabilities</b></td></tr>${group('liability')}<tr class="total"><td>Total liabilities</td><td class="num">${fmt(liabTotal)}</td></tr>
+  <tr><td colspan="2"><b>Equity</b></td></tr>${group('equity')}
+  <tr><td>Current year earnings</td><td class="num">${fmt(net)}</td></tr>
+  <tr class="total"><td>Total equity</td><td class="num">${fmt(eqTotal+net)}</td></tr>
+  <tr class="total"><td>Total liabilities + equity</td><td class="num">${fmt(liabTotal+eqTotal+net)}</td></tr>
+  </tbody></table>`;
+}
+function reportIS(tb){
+  const rev=tb.filter(r=>r.account.type==='revenue').reduce((s,r)=>s+(r.account.normal==='credit'?r.credit-r.debit:r.debit-r.credit),0);
+  const exp=tb.filter(r=>r.account.type==='expense').reduce((s,r)=>s+(r.account.normal==='debit'?r.debit-r.credit:r.credit-r.debit),0);
+  return `<table><thead><tr><th>${t('income')}</th><th class="num">EGP</th></tr></thead><tbody>
+  <tr><td colspan="2"><b>Revenue</b></td></tr>${tb.filter(r=>r.account.type==='revenue').map(r=>`<tr><td>${esc(state.lang==='ar'?r.account.ar:r.account.en)}</td><td class="num">${fmt(r.account.normal==='credit'?r.credit-r.debit:r.debit-r.credit)}</td></tr>`).join('')}
+  <tr class="total"><td>Total revenue</td><td class="num">${fmt(rev)}</td></tr>
+  <tr><td colspan="2"><b>Expenses</b></td></tr>${tb.filter(r=>r.account.type==='expense').map(r=>`<tr><td>${esc(state.lang==='ar'?r.account.ar:r.account.en)}</td><td class="num">${fmt(r.account.normal==='debit'?r.debit-r.credit:r.credit-r.debit)}</td></tr>`).join('')}
+  <tr class="total"><td>Total expenses</td><td class="num">${fmt(exp)}</td></tr>
+  <tr class="total"><td>Net profit / (loss)</td><td class="num">${fmt(rev-exp)}</td></tr>
+  </tbody></table>`;
+}
+function reportAging(sim){
+  const ap=SUPPLIERS.map(s=>{let b=0;for(const tx of sim.transactions){for(const l of tx.lines){if(tx.party===s.id&&l.account==='2000')b+=l.credit-l.debit;}}return {s,b};});
+  const ar=CUSTOMERS.map(c=>{let b=0;for(const tx of sim.transactions){for(const l of tx.lines){if(tx.party===c.id&&l.account==='1020')b+=l.debit-l.credit;}}return {c,b};});
+  return `<h4>AP aging</h4><table><thead><tr><th>${t('supplier')}</th><th class="num">${t('balance')}</th></tr></thead><tbody>${ap.map(r=>`<tr><td>${esc(state.lang==='ar'?r.s.ar:r.s.en)}</td><td class="num">${fmt(r.b)}</td></tr>`).join('')}<tr class="total"><td>${t('total')}</td><td class="num">${fmt(ap.reduce((s,r)=>s+r.b,0))}</td></tr></tbody></table>
+  <h4>AR aging</h4><table><thead><tr><th>${t('customer')}</th><th class="num">${t('balance')}</th></tr></thead><tbody>${ar.map(r=>`<tr><td>${esc(state.lang==='ar'?r.c.ar:r.c.en)}</td><td class="num">${fmt(r.b)}</td></tr>`).join('')}<tr class="total"><td>${t('total')}</td><td class="num">${fmt(ar.reduce((s,r)=>s+r.b,0))}</td></tr></tbody></table>`;
+}
+function bindReportTabs(){}
+
+function renderSimClose(){
+  const sim=ensureSim();
+  const steps=[
+    {k:'gl', en:'Manual journal posted', ar:'ترحيل قيد يدوي'},
+    {k:'ap', en:'Supplier invoice recorded', ar:'تسجيل فاتورة مورد'},
+    {k:'pay', en:'Supplier payment processed', ar:'معالجة دفعة مورد'},
+    {k:'ar', en:'Customer invoice created', ar:'إنشاء فاتورة عميل'},
+    {k:'receipt', en:'Customer receipt allocated', ar:'تخصيص تحصيل عميل'},
+    {k:'bank', en:'Bank reconciliation completed', ar:'إكمال تسوية البنك'},
+    {k:'dep', en:'Depreciation posted', ar:'ترحيل الإهلاك'}
+  ];
+  const done=steps.filter(s=>sim.completedSteps[s.k]).length;
+  return `
+  <h3>${t('monthEnd')} — ${t('exercise')} 10</h3>
+  <div class="alert warn small"><b>${t('closeChecklist')}:</b> ${state.erp==='sap'?'SAP Advanced Financial Closing / closing cockpit.':'Oracle Period Close checklist.'} ${t('closeBlocked')}</div>
+  <ul class="checklist">
+    ${steps.map(s=>`<li><span class="check-circle ${sim.completedSteps[s.k]?'done':''}">${sim.completedSteps[s.k]?'✓':''}</span><span>${esc(state.lang==='ar'?s.ar:s.en)}</span></li>`).join('')}
+  </ul>
+  <p class="small muted">${done}/${steps.length} ${t('completed')}</p>
+  <div class="flex">
+    ${sim.closed?'<span class="badge ok">'+t('closed')+'</span>':`<button class="btn primary small" ${done<steps.length?'disabled':''} onclick="closePeriod()">${t('closePeriod')}</button>`}
+    <button class="btn small" onclick="reopenPeriod()">Reopen</button>
+  </div>
+  <div id="closeMsg"></div>`;
+}
+function closePeriod(){
+  const sim=ensureSim();
+  const net=netIncome(sim);
+  if(Math.abs(net)>0.005){
+    const lines=net>0
+      ?[{account:'3200',debit:0,credit:net,description:'Close net income'},{account:'3100',debit:net,credit:0,description:'Transfer to retained earnings'}]
+      :[{account:'3100',debit:Math.abs(net),credit:0,description:'Transfer loss'},{account:'3200',debit:0,credit:Math.abs(net),description:'Close net loss'}];
+    postJournal(sim,lines,{date:'2025-01-31',description:'Period close — net income to retained earnings',type:'CL'});
+  }
+  sim.closed=true; sim.periodOpen=false; sim.completedSteps.close=true; saveState();
+  document.getElementById('simPanel').innerHTML=renderSimClose();
+  showToast(t('closeDone'));
+}
+function reopenPeriod(){
+  const sim=ensureSim(); sim.closed=false; sim.periodOpen=true; saveState();
+  document.getElementById('simPanel').innerHTML=renderSimClose();
+}
+
+function resetSim(){
+  if(!confirm(t('resetConfirm'))) return;
+  state.sim[state.erp]=newSimState(); saveState();
+  showToast(t('simReset')); render();
+}
+function seedDemo(){
+  const sim=ensureSim();
+  if(sim.seeded){ showToast('Demo data already loaded.'); return; }
+  // opening already in OPENING; post January transactions
+  const txns=[
+    {lines:[{account:'1000',debit:100000,credit:0},{account:'3000',debit:0,credit:100000}],date:'2025-01-02',description:'Additional owner contribution',type:'SA'},
+    {lines:[{account:'1030',debit:50000,credit:0},{account:'1050',debit:7000,credit:0},{account:'2000',debit:0,credit:57000}],date:'2025-01-05',description:'Purchase inventory on credit — Cairo Suppliers',type:'KR',party:'S001',invoiceNo:'SUP-2025-001'},
+    {lines:[{account:'1000',debit:34200,credit:0},{account:'4000',debit:0,credit:30000},{account:'2010',debit:0,credit:4200},{account:'5000',debit:18000,credit:0},{account:'1030',debit:0,credit:18000}],date:'2025-01-07',description:'Cash sale',type:'DR'},
+    {lines:[{account:'1020',debit:91200,credit:0},{account:'4000',debit:0,credit:80000},{account:'2010',debit:0,credit:11200},{account:'5000',debit:48000,credit:0},{account:'1030',debit:0,credit:48000}],date:'2025-01-10',description:'Credit sale — Alex Retail',type:'DR',party:'C001',invoiceNo:'CUS-2025-001'},
+    {lines:[{account:'1010',debit:50000,credit:0},{account:'1020',debit:0,credit:50000}],date:'2025-01-15',description:'Customer receipt — Alex Retail',type:'DZ',party:'C001'},
+    {lines:[{account:'2000',debit:30000,credit:0},{account:'1010',debit:0,credit:30000}],date:'2025-01-20',description:'Supplier payment — Cairo Suppliers',type:'KZ',party:'S001'},
+    {lines:[{account:'5100',debit:15000,credit:0},{account:'1010',debit:0,credit:15000}],date:'2025-01-01',description:'Rent expense',type:'SA'},
+    {lines:[{account:'5200',debit:40000,credit:0},{account:'1010',debit:0,credit:40000}],date:'2025-01-25',description:'Salaries',type:'SA'},
+    {lines:[{account:'5300',debit:6000,credit:0},{account:'2030',debit:0,credit:6000}],date:'2025-01-28',description:'Utilities accrual',type:'SA'},
+    {lines:[{account:'1100',debit:60000,credit:0},{account:'1050',debit:8400,credit:0},{account:'1010',debit:0,credit:68400}],date:'2025-01-12',description:'Office equipment purchase',type:'SA'},
+    {lines:[{account:'1040',debit:12000,credit:0},{account:'1010',debit:0,credit:12000}],date:'2025-01-01',description:'Prepaid insurance 12 months',type:'SA'},
+    {lines:[{account:'5600',debit:1000,credit:0},{account:'1040',debit:0,credit:1000}],date:'2025-01-31',description:'Insurance expense — one month',type:'SA'},
+    {lines:[{account:'5700',debit:2000,credit:0},{account:'1030',debit:0,credit:2000}],date:'2025-01-31',description:'Inventory shrinkage',type:'SA'}
+  ];
+  for(const t of txns){ postJournal(sim,t.lines,{date:t.date,description:t.description,type:t.type,party:t.party,invoiceNo:t.invoiceNo}); }
+  sim.seeded=true; saveState();
+  showToast(t('demoLoaded')); render();
+}
+
+/* Workplace tasks */
+function renderWorkplace(){
+  const tasks=[
+    {id:'w1', en:'Record five supplier invoices and identify duplicates', ar:'تسجيل خمس فواتير موردين وتحديد التكرار', hint:{en:'Check the invoice number against the AP subledger before posting.',ar:'تحقق من رقم الفاتورة مقابل دفتر AP المساعد قبل الترحيل.'},
+     sol:{en:'Use Create Supplier Invoice. Run a duplicate check by supplier + invoice number. If a duplicate exists, do not post; investigate and reverse if already posted.',ar:'استخدم إنشاء فاتورة مورد. افحص التكرار بواسطة المورد + رقم الفاتورة. إذا وُجد تكرار لا تُرحّل؛ وحقق واعكس إذا رُحّل بالفعل.'},
+     phrase:'“I checked the supplier invoice numbers against the AP subledger and held one potential duplicate pending supplier confirmation.”'},
+    {id:'w2', en:'Investigate a bank reconciliation difference', ar:'التحقيق في فرق تسوية البنك', hint:{en:'Compare book balance and statement balance; classify timing vs error.',ar:'قارن رصيد الدفاتر ورصيد الكشف؛ صنف الفرق بين توقيت وخطأ.'},
+     sol:{en:'Build a reconciliation: outstanding cheques, deposits in transit, bank charges, and errors. Post only adjustments that affect the books, such as unrecorded bank fees.',ar:'أعد بناء التسوية: شيكات معلقة وإيداعات في الطريق ورسوم بنكية وأخطاء. رحّل فقط التسويات التي تؤثر على الدفاتر مثل الرسوم غير المسجلة.'},
+     phrase:'“The difference was a timing difference of EGP 250 caused by an unrecorded bank service charge. I posted the charge and the book balance now agrees to the statement.”'},
+    {id:'w3', en:'Prepare an AP aging report', ar:'إعداد تقرير أعمار الحسابات الدائنة', hint:{en:'Group open supplier invoices by due date buckets: current, 1–30, 31–60, 61–90, 90+.',ar:'جمّع فواتير الموردين المفتوحة حسب تاريخ الاستحقاق: جاري، 1–30، 31–60، 61–90، أكثر من 90.'},
+     sol:{en:'Run the AP aging report, reconcile the total to the AP control account, and investigate any invoice with no due date or a credit balance.',ar:'شغّل تقرير أعمار AP وطابق الإجمالي مع حساب مراقبة الموردين وحقق في أي فاتورة بلا تاريخ استحقاق أو برصيد دائن.'},
+     phrase:'“The AP aging total reconciles to the AP control account. One credit balance is a supplier prepayment that should be reclassified.”'},
+    {id:'w4', en:'Investigate an unusual General Ledger balance', ar:'التحقيق في رصيد غير معتاد في دفتر الأستاذ العام', hint:{en:'Drill into line items; compare to prior periods; check for missing reversals or duplicate postings.',ar:'انتقل إلى البنود؛ قارن بالفترات السابقة؛ افحص العكس المفقود أو الترحيل المكرر.'},
+     sol:{en:'Use account inquiry / line-item display, identify the source document, and determine whether a correction or reversal is required.',ar:'استخدم الاستعلام عن الحساب / عرض البنود وحدد المستند المصدر وحدد ما إذا كان تصحيح أو عكس مطلوبًا.'},
+     phrase:'“I traced the balance to a duplicate accrual posted twice. I reversed the duplicate and documented the correction.”'},
+    {id:'w5', en:'Post month-end accruals', ar:'ترحيل استحقاقات نهاية الشهر', hint:{en:'Accrue expenses incurred but not invoiced, then reverse in the next period.',ar:'استحق المصروفات المتكبدة غير المفوترة ثم اعكسها في الفترة التالية.'},
+     sol:{en:'Dr Expense / Cr Accrued Liability. Create a reversing journal for the first day of the next period.',ar:'مدين مصروف / دائن التزام مستحق. أنشئ قيدًا عكسيًا لأول يوم من الفترة التالية.'},
+     phrase:'“I posted the utilities accrual and set up a reversing entry for 1 February to avoid double-counting when the invoice arrives.”'},
+    {id:'w6', en:'Reconcile AP and AR with the General Ledger', ar:'مطابقة AP وAR مع دفتر الأستاذ العام', hint:{en:'Subledger total must equal the GL control account.',ar:'يجب أن يساوي إجمالي الدفتر المساعد حساب المراقبة في GL.'},
+     sol:{en:'Run AP/AR aging or supplier/customer balances and compare to the GL control accounts. Investigate differences such as unposted receipts or manual journals.',ar:'شغّل أعمار AP/AR أو أرصدة الموردين/العملاء وقارنها بحسابات المراقبة في GL. حقق في الفروق مثل التحصيلات غير المرحّلة أو القيود اليدوية.'},
+     phrase:'“The AP subledger reconciled to the control account. The AR difference was an unapplied receipt that I applied to the correct invoice.”'},
+    {id:'w7', en:'Prepare a trial balance and investigate why a report does not balance', ar:'إعداد ميزان المراجعة والتحقيق في عدم توازن تقرير', hint:{en:'Check debit-credit equality, signs of contra accounts, and unposted journals.',ar:'افحص تساوي المدين والدائن وإشارات الحسابات المقابلة والقيود غير المرحّلة.'},
+     sol:{en:'Run the trial balance. If it does not balance, look for one-sided journals, wrong normal side, or report definition errors. Do not force the report to balance.',ar:'شغّل ميزان المراجعة. إذا لم يتوازن ابحث عن قيود أحادية الجانب أو جانب طبيعي خاطئ أو أخطاء في تعريف التقرير. لا تجبر التقرير على التوازن.'},
+     phrase:'“The trial balance difference traced to a journal posted with a debit and no credit. I reversed it and reposted correctly.”'},
+    {id:'w8', en:'Correct an incorrectly posted journal entry', ar:'تصحيح قيد يومية مُرحّل بشكل خاطئ', hint:{en:'Do not delete posted entries; reverse and repost.',ar:'لا تحذف القيود المرحّلة؛ اعكس ثم أعد الترحيل.'},
+     sol:{en:'Post a reversing journal referencing the original, then post the corrected entry. Document the reason and approver.',ar:'رحّل قيدًا عكسيًا يشير إلى الأصلي ثم رحّل القيد الصحيح. وثّق السبب والمعتمد.'},
+     phrase:'“I reversed the incorrect journal rather than changing it, and reposted the correct entry so the audit trail remains intact.”'}
+  ];
+  return `<h1>${t('workplace')}</h1>
+  <p class="muted">${t('managerInstructions')} — practice before revealing the solution.</p>
+  ${tasks.map(task=>`<div class="card" style="margin-bottom:.8rem">
+    <h3>${esc(task[state.lang])}</h3>
+    <details><summary class="small"><b>${t('hints')}</b></summary><p class="small">${esc(task.hint[state.lang])}</p></details>
+    <details><summary class="small"><b>${t('solution')}</b></summary><p class="small">${esc(task.sol[state.lang])}</p></details>
+    <details><summary class="small"><b>${t('professionalPhrase')}</b></summary><p class="small"><i>${esc(task.phrase)}</i></p></details>
+  </div>`).join('')}`;
+}
+
+/* Exam */
+function renderExam(){
+  const sim=ensureSim();
+  const req=['gl','ap','ar','bank','dep','close'];
+  const done=req.filter(k=>sim.completedSteps[k]).length;
+  const passed=done===req.length && Math.abs(trialBalance(sim).reduce((s,r)=>s+r.debit,0)-trialBalance(sim).reduce((s,r)=>s+r.credit,0))<0.005;
+  return `<h1>${t('exam')}</h1>
+  <p class="muted">${t('examIntro')}</p>
+  <ul class="checklist">
+    <li><span class="check-circle ${sim.completedSteps.gl?'done':''}">${sim.completedSteps.gl?'✓':''}</span>${t('journalEntry')}</li>
+    <li><span class="check-circle ${sim.completedSteps.ap?'done':''}">${sim.completedSteps.ap?'✓':''}</span>${t('supplierInvoice')}</li>
+    <li><span class="check-circle ${sim.completedSteps.ar?'done':''}">${sim.completedSteps.ar?'✓':''}</span>${t('customerInvoice')}</li>
+    <li><span class="check-circle ${sim.completedSteps.bank?'done':''}">${sim.completedSteps.bank?'✓':''}</span>${t('bankRec')}</li>
+    <li><span class="check-circle ${sim.completedSteps.dep?'done':''}">${sim.completedSteps.dep?'✓':''}</span>${t('depreciation')}</li>
+    <li><span class="check-circle ${sim.completedSteps.close?'done':''}">${sim.completedSteps.close?'✓':''}</span>${t('closePeriod')}</li>
+  </ul>
+  <div class="alert ${passed?'ok':'warn'}">${passed?t('examPass'):t('examFail')}</div>
+  <button class="btn primary" onclick="navigate('simulator')">${t('goToSim')} →</button>`;
+}
+
+/* Comparison */
+function renderCompare(){
+  const tasks=[
+    {id:'je', en:'Creating a journal entry', ar:'إنشاء قيد يومية',
+     sap:'Fiori Launchpad → Post General Journal Entries (F0718). Header: company code, journal entry date, posting date, period, document type SA, currency. Lines: G/L account, debit/credit, cost centre. Validate and post.',
+     ora:'Home → General Accounting → Journals → Create Journal. Batch, description, accounting period, ledger, category. Lines: account combination, debit/credit. Validate and post.',
+     term:'SAP: Company Code, Document Type, Posting Date. Oracle: Ledger, Journal Category, Accounting Date.',
+     fields:'SAP: Company Code, Posting Date, Period, Document Type, G/L Account. Oracle: Ledger, Accounting Period, Category, Account Combination.',
+     entry:'Dr Expense / Cr Bank (example).',
+     ver:'SAP: Manage Journal Entries (F0717A) / trial balance. Oracle: Manage Journals / trial balance.',
+     err:'SAP: wrong document type or closed period. Oracle: closed accounting period or invalid account combination.'},
+    {id:'ap', en:'Recording a supplier invoice', ar:'تسجيل فاتورة مورد',
+     sap:'Create Supplier Invoice – Advanced (MIRO) or Fiori supplier invoice app. Enter company code, supplier, invoice date, posting date, reference, amount, tax, PO reference. Simulate and post.',
+     ora:'Payables → Invoices → Create Invoice. Enter supplier, invoice number, date, amount, tax, distribution. Validate.',
+     term:'SAP: Supplier / Business Partner, Invoice Verification, Company Code. Oracle: Supplier, Invoice Validation, Business Unit.',
+     fields:'SAP: Company Code, Supplier, Invoice Date, Posting Date, Amount, Tax Code. Oracle: Business Unit, Supplier, Invoice Date, Amount, Tax, Distribution Account.',
+     entry:'Dr Inventory/Expense + Dr VAT Input / Cr AP.',
+     ver:'SAP: Supplier line items / AP aging. Oracle: Supplier balances / AP aging.',
+     err:'SAP: PO price or quantity variance. Oracle: invoice on hold or validation failure.'},
+    {id:'pay', en:'Paying a supplier', ar:'دفع مورد',
+     sap:'Post Outgoing Payments (F1612) or Manage Automatic Payments. Select open items, bank account, payment method, posting date. Post.',
+     ora:'Payables → Payments → Create Payment. Select supplier, payment method, bank account, invoices. Confirm and process.',
+     term:'SAP: Outgoing Payment, Payment Run, Clearing. Oracle: Payment Process Request, Payment Method, Clearing.',
+     fields:'SAP: Supplier, Bank Account, Amount, Posting Date. Oracle: Supplier, Bank Account, Payment Date, Amount.',
+     entry:'Dr AP / Cr Bank.',
+     ver:'SAP: Supplier line items cleared / bank balance. Oracle: Payment status / bank balance.',
+     err:'SAP: payment block or wrong bank account. Oracle: payment process request not formatted or bank account invalid.'},
+    {id:'ar', en:'Creating a customer invoice', ar:'إنشاء فاتورة عميل',
+     sap:'Sales billing or financial accounting customer invoice. Enter customer, date, amount, tax, revenue account. Post.',
+     ora:'Receivables → Transactions → Create Transaction. Enter customer, transaction date, amount, tax, revenue account. Complete and post.',
+     term:'SAP: Customer, Billing Document, Revenue Account. Oracle: Customer, Transaction, Receivable Activity.',
+     fields:'SAP: Customer, Company Code, Invoice Date, Amount, Tax Code. Oracle: Business Unit, Customer, Transaction Date, Amount, Tax.',
+     entry:'Dr AR / Cr Revenue + Cr VAT Output.',
+     ver:'SAP: Customer line items / AR aging. Oracle: Customer balances / AR aging.',
+     err:'SAP: wrong tax code or revenue account. Oracle: transaction source or category error.'},
+    {id:'receipt', en:'Applying customer receipts', ar:'تطبيق تحصيلات العملاء',
+     sap:'Incoming payments → select customer → enter amount and bank account → allocate to open invoices → post.',
+     ora:'Receivables → Receipts → Create Receipt → enter customer, amount, bank account → apply to invoice → save.',
+     term:'SAP: Incoming Payment, Clearing, Residual Item. Oracle: Receipt, Receipt Application, Unapplied Cash.',
+     fields:'SAP: Customer, Amount, Bank Account, Invoice Reference. Oracle: Customer, Receipt Method, Amount, Application.',
+     entry:'Dr Bank / Cr AR.',
+     ver:'SAP: Customer balance / AR aging. Oracle: Receipt status / AR aging.',
+     err:'SAP: receipt not allocated or wrong customer. Oracle: receipt left unapplied.'},
+    {id:'bank', en:'Performing bank reconciliation', ar:'إجراء تسوية البنك',
+     sap:'Manage Bank Statements (F1564) → import/enter statement → match → post adjustments → reconcile.',
+     ora:'Cash Management → Bank Statements and Reconciliation → Manual Reconciliation → match → review exceptions → reconcile.',
+     term:'SAP: Bank Statement, Reconciliation, Clearing. Oracle: Bank Statement, Reconciliation, Exception.',
+     fields:'SAP: Bank Account, Statement Date, Statement Balance. Oracle: Bank Account, Statement Date, Ending Balance.',
+     entry:'Bank charges: Dr Bank Charges / Cr Bank. Timing differences: no entry.',
+     ver:'SAP: Book vs statement balance. Oracle: Reconciliation status / book vs statement.',
+     err:'SAP: unmatched statement line. Oracle: ambiguous or amount exception.'},
+    {id:'tb', en:'Generating a trial balance', ar:'إنشاء ميزان المراجعة',
+     sap:'Fiori trial balance app / universal journal report. Select company code, ledger, period. Run.',
+     ora:'General Accounting → Trial Balance. Select ledger, period, account range. Run.',
+     term:'SAP: Universal Journal (ACDOCA), Ledger. Oracle: Ledger, Accounting Period.',
+     fields:'SAP: Company Code, Ledger, Fiscal Period. Oracle: Ledger, Period, Currency.',
+     entry:'No entry — report only.',
+     ver:'Total debits = total credits.',
+     err:'SAP: report currency or ledger selection wrong. Oracle: wrong period or ledger.'},
+    {id:'fs', en:'Reviewing financial statements', ar:'مراجعة القوائم المالية',
+     sap:'Fiori financial statement apps / balance sheet and income statement reports. Select company code and period.',
+     ora:'Financial Reporting → Balance Sheet / Income Statement. Select ledger and period.',
+     term:'SAP: Financial Statement Version, Company Code. Oracle: Financial Reporting, Ledger.',
+     fields:'SAP: Company Code, Period, Statement Version. Oracle: Ledger, Period, Report.',
+     entry:'No entry — report only.',
+     ver:'Assets = Liabilities + Equity; net income rolls into equity.',
+     err:'SAP: wrong statement version. Oracle: unbalanced report definition.'},
+    {id:'close', en:'Closing an accounting period', ar:'إغلاق فترة المحاسبة',
+     sap:'Advanced Financial Closing / closing cockpit → complete tasks → close posting period.',
+     ora:'Period Close → complete subledger close → transfer to GL → post journals → close GL period.',
+     term:'SAP: Financial Closing Cockpit, Posting Period. Oracle: Period Close, Subledger Close.',
+     fields:'SAP: Company Code, Period, Fiscal Year. Oracle: Ledger, Period.',
+     entry:'Closing entries: transfer net income to retained earnings.',
+     ver:'All subledgers reconciled; trial balance balanced.',
+     err:'SAP: open subledger or unposted invoice. Oracle: open subledger period prevents GL close.'}
+  ];
+  return `<h1>${t('compare')}</h1>
+  <p class="muted">${t('similarities')} — workflows are not identical across products or versions. Verify exact menu names in your environment.</p>
+  ${tasks.map(x=>`<div class="card" style="margin-bottom:1rem">
+    <h3>${esc(x[state.lang])}</h3>
+    <p class="small"><b>${t('objective')}:</b> ${x.en}</p>
+    <div class="compare">
+      <div><h4 style="color:var(--sap)">SAP S/4HANA</h4><p class="small">${esc(x.sap)}</p></div>
+      <div><h4 style="color:var(--oracle)">Oracle Fusion</h4><p class="small">${esc(x.ora)}</p></div>
+    </div>
+    <details class="small"><summary><b>${t('terminology')}</b></summary><p>${esc(x.term)}</p></details>
+    <details class="small"><summary><b>${t('requiredFields')}</b></summary><p>${esc(x.fields)}</p></details>
+    <details class="small"><summary><b>${t('accountingTreatment')}</b></summary><p class="mono">${esc(x.entry)}</p></details>
+    <details class="small"><summary><b>${t('verification')}</b></summary><p>${esc(x.ver)}</p></details>
+    <details class="small"><summary><b>${t('commonErrors')}</b></summary><p>${esc(x.err)}</p></details>
+  </div>`).join('')}`;
+}
+
+/* Glossary */
+function renderGlossary(){
+  return `<h1>${t('glossary')}</h1>
+  <input type="text" id="glossSearch" placeholder="${t('search')} — English or Arabic" oninput="filterGlossary()">
+  <div id="glossList" style="margin-top:1rem">
+  ${GLOSSARY.map((g,i)=>`<div class="card gloss-item" data-search="${esc((g.en+' '+g.ar+' '+g.def.en+' '+g.def.ar).toLowerCase())}" style="margin-bottom:.6rem">
+    <div class="flex between"><h3>${esc(g.en)} — ${esc(g.ar)}</h3><span class="badge">${i+1}</span></div>
+    <p class="small">${esc(g.def[state.lang])}</p>
+    <p class="small"><b>Example:</b> ${esc(g.ex[state.lang])}</p>
+    <p class="tiny muted"><b>SAP:</b> ${esc(g.sap)} · <b>Oracle:</b> ${esc(g.oracle)}</p>
+  </div>`).join('')}
+  </div>`;
+}
+function filterGlossary(){
+  const q=document.getElementById('glossSearch').value.toLowerCase();
+  document.querySelectorAll('.gloss-item').forEach(el=>{
+    el.style.display = el.dataset.search.includes(q)?'block':'none';
+  });
+}
+
+/* Videos & tutorials */
+function renderVideos(){
+  const vids=[
+    {title:'SAP S/4HANA Finance — official help and product documentation', erp:'SAP', url:'https://help.sap.com/docs/SAP_S4HANA_ON-PREMISE', summary:{en:'Official SAP Help Portal for S/4HANA Finance, including journal entries, supplier invoices, payments, asset accounting, and closing.',ar:'بوابة SAP Help الرسمية لـ S/4HANA Finance، وتشمل القيود وفواتير الموردين والمدفوعات ومحاسبة الأصول والإغلاق.'}},
+    {title:'SAP Learning — Finance learning journeys', erp:'SAP', url:'https://learning.sap.com', summary:{en:'Official SAP Learning site with free finance learning journeys and microlearnings.',ar:'موقع SAP Learning الرسمي مع مسارات تعلم مالية مجانية ودروس قصيرة.'}},
+    {title:'Oracle Fusion Cloud Financials — official documentation', erp:'Oracle', url:'https://docs.oracle.com/en/cloud/saas/financials/index.html', summary:{en:'Official Oracle documentation for General Ledger, Payables, Receivables, Cash Management, Assets, and period close.',ar:'وثائق Oracle الرسمية لدفتر الأستاذ العام والحسابات الدائنة والمدينة وإدارة النقدية والأصول وإغلاق الفترة.'}},
+    {title:'Oracle Financials video library', erp:'Oracle', url:'https://docs.oracle.com/en/cloud/saas/financials/26d/books.html', summary:{en:'Oracle’s official Financials documentation library includes video and text alternatives for common tasks.',ar:'تتضمن مكتبة وثائق Oracle المالية الرسمية فيديوهات وبدائل نصية للمهام الشائعة.'}}
+  ];
+  return `<h1>${t('videos')}</h1>
+  <p class="muted">${t('externalNote')}</p>
+  ${vids.map(v=>`<div class="card" style="margin-bottom:.8rem">
+    <div class="flex between"><h3>${esc(v.title)}</h3><span class="badge">${v.erp}</span></div>
+    <div class="visual" style="margin:.5rem 0;padding:2rem;text-align:center">
+      <p class="muted small">${t('videoPlaceholder')}</p>
+      <a class="btn small" href="${v.url}" target="_blank" rel="noopener">${t('viewDoc')} ↗</a>
+    </div>
+    <p class="small"><b>${t('summary')}:</b> ${esc(v.summary[state.lang])}</p>
+    <details><summary class="small"><b>${t('stepByStep')}</b></summary>
+      <ol class="small">
+        <li>Open the official documentation link above.</li>
+        <li>Search for the task name (for example, “Create Supplier Invoice” or “Create Journal”).</li>
+        <li>Follow the documented navigation path for your product edition and role.</li>
+        <li>Complete the practice task in the simulator on the previous screen.</li>
+      </ol>
+    </details>
+    <p class="tiny muted">${t('practiceTask')}: post the equivalent transaction in the simulator and verify the resulting balances.</p>
+  </div>`).join('')}`;
+}
+
+/* Reset */
+function resetAll(){
+  if(!confirm(t('resetConfirm'))) return;
+  state.progress={shared:{lessons:{},quizzes:{}},sap:{lessons:{},quizzes:{},sim:{}},oracle:{lessons:{},quizzes:{},sim:{}}};
+  state.sim={sap:newSimState(),oracle:newSimState()};
+  state.erp=null; saveState(); backToWelcome(); showToast('All progress reset.');
+}
+
+/* Boot */
+loadState();
+document.documentElement.lang=state.lang;
+document.documentElement.dir=state.lang==='ar'?'rtl':'ltr';
+renderWelcomeTexts();
+if(state.erp){
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  ensureSim(); render();
+}
+</script>
+</body>
+</html>
